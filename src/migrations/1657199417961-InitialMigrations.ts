@@ -30,7 +30,7 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
       `CREATE TABLE "messages" (
         "id" bigserial PRIMARY KEY,
         "userId" bigint NOT NULL,
-        "content" varchar NOT NULL,
+        "body" varchar NOT NULL,
         "type" varchar NOT NULL,
         "priority" bigint NOT NULL,
         "createdAt" timestamptz NOT NULL DEFAULT (now())
@@ -42,6 +42,9 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
         "agentId" bigint NOT NULL,
         "userId" bigint UNIQUE NOT NULL
       )`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX ON "agents_users" ("agentId", "userId")`,
     );
     await queryRunner.query(
       `ALTER TABLE "messages" ADD FOREIGN KEY ("userId") REFERENCES "users" ("id")`,

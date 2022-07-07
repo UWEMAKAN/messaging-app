@@ -15,7 +15,7 @@ export class Message {
   id: number;
 
   @Column()
-  content: string;
+  body: string;
 
   @Column()
   type: string;
