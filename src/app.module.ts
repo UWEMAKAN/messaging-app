@@ -7,6 +7,7 @@ import { HttpErrorFilter, LoggingInterceptor } from './utils';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { entities } from './entities';
+import { services } from './services';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { entities } from './entities';
   ],
   controllers: [AppController],
   providers: [
+    ...services,
     AppService,
     {
       provide: APP_FILTER,
