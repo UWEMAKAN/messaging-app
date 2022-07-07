@@ -39,7 +39,7 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
     await queryRunner.query(
       `CREATE TABLE "agents_users" (
         "agentId" bigint NOT NULL,
-        "userId" bigint NOT NULL
+        "userId" bigint UNIQUE NOT NULL
       )`,
     );
     await queryRunner.query(
