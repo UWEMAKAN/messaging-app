@@ -38,6 +38,7 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
     );
     await queryRunner.query(
       `CREATE TABLE "agents_users" (
+        "id" bigserial PRIMARY KEY,
         "agentId" bigint NOT NULL,
         "userId" bigint UNIQUE NOT NULL
       )`,
