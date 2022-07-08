@@ -57,6 +57,6 @@ export class CreateUserCommandHandler
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    return { userId: user.id };
+    return { userId: +user.id };
   }
 }
