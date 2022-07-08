@@ -95,4 +95,90 @@ describe('Controllers (e2e)', () => {
         .expect(400);
     });
   });
+
+  describe('AuthController', () => {
+    it('/auth/login/users (POST) 200 Ok', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(8),
+      };
+      await request(app.getHttpServer()).post('/users').send(body).expect(201);
+      return request(app.getHttpServer())
+        .post('/auth/login/users')
+        .send({ email: body.email, password: body.password })
+        .expect(200);
+    });
+
+    it('/auth/login/users (POST) 400 Bad Request', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(6),
+      };
+      await request(app.getHttpServer()).post('/users').send(body).expect(201);
+      return request(app.getHttpServer())
+        .post('/auth/login/users')
+        .send({ email: body.email, password: randomString(5) })
+        .expect(400);
+    });
+
+    it('/auth/login/users (POST) 401 UnAuthorized', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(6),
+      };
+      await request(app.getHttpServer()).post('/users').send(body).expect(201);
+      return request(app.getHttpServer())
+        .post('/auth/login/users')
+        .send({ email: randomEmail(), password: randomString(7) })
+        .expect(401);
+    });
+
+    it('/auth/login/agents (POST) 200 Ok', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(8),
+      };
+      await request(app.getHttpServer()).post('/agents').send(body).expect(201);
+      return request(app.getHttpServer())
+        .post('/auth/login/agents')
+        .send({ email: body.email, password: body.password })
+        .expect(200);
+    });
+
+    it('/auth/login/agents (POST) 400 Bad Request', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(6),
+      };
+      await request(app.getHttpServer()).post('/agents').send(body).expect(201);
+      return request(app.getHttpServer())
+        .post('/auth/login/agents')
+        .send({ email: body.email, password: randomString(5) })
+        .expect(400);
+    });
+
+    it('/auth/login/agents (POST) 401 UnAuthorized', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(6),
+      };
+      await request(app.getHttpServer()).post('/agents').send(body).expect(201);
+      return request(app.getHttpServer())
+        .post('/auth/login/agents')
+        .send({ email: randomEmail(), password: randomString(7) })
+        .expect(401);
+    });
+  });
 });
