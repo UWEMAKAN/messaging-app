@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
+import { HttpErrorFilter, LoggingInterceptor, ValidationPipe } from './utils';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { entities } from './entities';
+import { services } from './services';
+import { commandHandlers } from './application';
+import { controllers } from './controllers';
 
 @Module({
   imports: [
@@ -25,7 +30,23 @@ import { entities } from './entities';
     ),
     TypeOrmModule.forFeature([...entities]),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [...controllers, AppController],
+  providers: [
+    ...commandHandlers,
+    ...services,
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: HttpErrorFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_PIPE,
+      useClass: ValidationPipe,
+    },
+  ],
 })
 export class AppModule {}

@@ -1,3 +1,4 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -14,9 +15,18 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('all', () => {
+    it('should throw 404 Not Found', async () => {
+      try {
+        await appController.all();
+        expect.assertions(1);
+        expect(appController.all).toThrowError(new Error('Not Found'));
+      } catch (err) {
+        expect.assertions(1);
+        expect(err).toStrictEqual(
+          new HttpException('Not Found', HttpStatus.NOT_FOUND),
+        );
+      }
     });
   });
 });
