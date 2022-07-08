@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../../entities';
 import { PasswordService } from '../../../services';
-import { CreateUserDto } from '../../../dtos';
+import { CreateUserDto, CreateUserResponse } from '../../../dtos';
 
 export class CreateUserCommand implements ICommand {
   constructor(public readonly data: CreateUserDto) {}
@@ -24,7 +24,7 @@ export class CreateUserCommandHandler
     this.logger = new Logger(CreateUserCommandHandler.name);
   }
 
-  async execute(command: CreateUserCommand): Promise<{ userId: number }> {
+  async execute(command: CreateUserCommand): Promise<CreateUserResponse> {
     let user: User;
     try {
       user = await this.userRepository.findOne({
