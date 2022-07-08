@@ -1,5 +1,11 @@
-import { CreateUserCommandHandler } from './commands';
+import {
+  CreateAgentCommandHandler,
+  CreateUserCommandHandler,
+} from './commands';
 
 export * from './commands';
 
-export const commandHandlers = [CreateUserCommandHandler];
+export const commandHandlers = [
+  CreateAgentCommandHandler,
+  CreateUserCommandHandler,
+];

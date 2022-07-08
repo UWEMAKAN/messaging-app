@@ -18,7 +18,7 @@ const randomEmail = () => {
   return `${name}@${domain}.com`;
 };
 
-describe('AppController (e2e)', () => {
+describe('Controllers (e2e)', () => {
   let app: INestApplication;
   let moduleFixture: TestingModule;
 
@@ -37,14 +37,16 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(404)
-      .expect({ statusCode: 404, message: 'Not Found' });
+  describe('AppController', () => {
+    it('/ (GET)', () => {
+      return request(app.getHttpServer())
+        .get('/')
+        .expect(404)
+        .expect({ statusCode: 404, message: 'Not Found' });
+    });
   });
 
-  describe('/users', () => {
+  describe('UsersController', () => {
     it('/users (POST) 201 Created', () => {
       const body = {
         email: randomEmail(),
@@ -63,6 +65,34 @@ describe('AppController (e2e)', () => {
         password: randomString(5),
       };
       return request(app.getHttpServer()).post('/users').send(body).expect(400);
+    });
+  });
+
+  describe('AgentsController', () => {
+    it('/agents (POST) 201 Created', () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(8),
+      };
+      return request(app.getHttpServer())
+        .post('/agents')
+        .send(body)
+        .expect(201);
+    });
+
+    it('/agents (POST) 400 Bad Request', () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(5),
+      };
+      return request(app.getHttpServer())
+        .post('/agents')
+        .send(body)
+        .expect(400);
     });
   });
 });

@@ -1,33 +1,35 @@
-import { HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../../entities';
+import { Agent } from '../../../entities';
 import { PasswordService } from '../../../services';
-import { CreateUserDto, CreateUserResponse } from '../../../dtos';
+import { CreateAgentDto } from '../../../dtos';
 
-export class CreateUserCommand implements ICommand {
-  constructor(public readonly data: CreateUserDto) {}
+export class CreateAgentCommand implements ICommand {
+  constructor(public readonly data: CreateAgentDto) {}
 }
 
-@CommandHandler(CreateUserCommand)
-export class CreateUserCommandHandler
-  implements ICommandHandler<CreateUserCommand>
+@CommandHandler(CreateAgentCommand)
+export class CreateAgentCommandHandler
+  implements ICommandHandler<CreateAgentCommand>
 {
   private readonly logger: Logger;
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(Agent)
+    private readonly agentRepository: Repository<Agent>,
     private readonly passwordService: PasswordService,
   ) {
-    this.logger = new Logger(CreateUserCommandHandler.name);
+    this.logger = new Logger(CreateAgentCommandHandler.name);
   }
 
-  async execute(command: CreateUserCommand): Promise<CreateUserResponse> {
-    let user: User = null;
+  async execute(command: CreateAgentCommand): Promise<any> {
+    let agent: Agent = null;
+
     try {
-      user = await this.userRepository.findOne({
+      agent = await this.agentRepository.findOne({
         where: { email: command.data.email },
         select: ['id'],
       });
@@ -36,8 +38,8 @@ export class CreateUserCommandHandler
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    if (user) {
-      throw new HttpException('user already exists', HttpStatus.BAD_REQUEST);
+    if (agent) {
+      throw new HttpException('agent already exists', HttpStatus.BAD_REQUEST);
     }
 
     const { passwordHash, salt } = this.passwordService.hashPassword(
@@ -45,7 +47,7 @@ export class CreateUserCommandHandler
     );
 
     try {
-      user = await this.userRepository.save({
+      agent = await this.agentRepository.save({
         firstName: command.data.firstName,
         lastName: command.data.lastName,
         email: command.data.email,
@@ -57,6 +59,6 @@ export class CreateUserCommandHandler
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    return { userId: +user.id };
+    return { agentId: +agent.id };
   }
 }

@@ -1,30 +1,30 @@
 import { CommandBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateUserCommand } from '../../application';
-import { CreateUserDto } from '../../dtos';
-import { UsersController } from './users.controller';
+import { CreateAgentCommand } from '../../application';
+import { CreateAgentDto } from '../../dtos';
+import { AgentsController } from './agents.controller';
 
-const createUserDto = {
+const createAgentDto = {
   email: 'found@example.com',
   firstName: 'Found',
   lastName: 'Example',
   password: 'Password',
-} as CreateUserDto;
+} as CreateAgentDto;
 
-describe(UsersController.name, () => {
-  let controller: UsersController;
+describe('AgentsController', () => {
+  let controller: AgentsController;
   let module: TestingModule;
   const commandBus = {
-    execute: jest.fn().mockResolvedValue({ ...createUserDto, id: 1 }),
+    execute: jest.fn().mockResolvedValue({ ...createAgentDto, id: 1 }),
   } as unknown as CommandBus;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      controllers: [UsersController],
+      controllers: [AgentsController],
       providers: [{ provide: CommandBus, useValue: commandBus }],
     }).compile();
 
-    controller = module.get<UsersController>(UsersController);
+    controller = module.get<AgentsController>(AgentsController);
   });
 
   afterEach(async () => {
@@ -32,17 +32,17 @@ describe(UsersController.name, () => {
     await module.close();
   });
 
-  it(`${UsersController.name} should be defined`, () => {
+  it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
   test('should call commandBus.execute', async () => {
-    const user = await controller.createUser(createUserDto);
+    const agent = await controller.createAgent(createAgentDto);
     expect.assertions(3);
     expect(commandBus.execute).toBeCalledTimes(1);
     expect(commandBus.execute).toBeCalledWith(
-      new CreateUserCommand(createUserDto),
+      new CreateAgentCommand(createAgentDto),
     );
-    expect(user).toStrictEqual({ ...createUserDto, id: 1 });
+    expect(agent).toStrictEqual({ ...createAgentDto, id: 1 });
   });
 });
