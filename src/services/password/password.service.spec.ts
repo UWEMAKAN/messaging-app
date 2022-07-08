@@ -1,13 +1,17 @@
 import * as crypto from 'crypto';
 import { PasswordService } from './password.service';
 
-describe('UsersController', () => {
+describe(PasswordService.name, () => {
   const service = new PasswordService();
 
   beforeEach(async () => {
     jest.spyOn(crypto, 'createHash');
     jest.spyOn(crypto, 'createHmac');
     jest.spyOn(crypto, 'randomBytes');
+  });
+
+  afterEach(async () => {
+    jest.clearAllMocks();
   });
 
   it('PasswordService should be defined', () => {

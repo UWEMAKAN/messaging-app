@@ -25,10 +25,16 @@ export class CreateUserCommandHandler
   }
 
   async execute(command: CreateUserCommand): Promise<{ userId: number }> {
-    let user = await this.userRepository.findOne({
-      where: { email: command.data.email },
-      select: ['id'],
-    });
+    let user: User;
+    try {
+      user = await this.userRepository.findOne({
+        where: { email: command.data.email },
+        select: ['id'],
+      });
+    } catch (err) {
+      this.logger.log(JSON.stringify(err));
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     if (user) {
       throw new HttpException('user already exists', HttpStatus.BAD_REQUEST);
