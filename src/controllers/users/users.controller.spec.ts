@@ -71,7 +71,6 @@ describe(UsersController.name, () => {
       const response = {
         ...messageDto,
         createdAt: new Date().toISOString(),
-        priority: 1,
         id: 1,
       };
       commandBus.execute = jest.fn().mockResolvedValue(response);

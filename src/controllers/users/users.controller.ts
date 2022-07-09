@@ -57,6 +57,7 @@ export class UsersController {
       new CreateMessageCommand(dto),
     );
     this.eventBus.publish(new SendUserMessageEvent(message));
+    delete message.priority;
     return message;
   }
 }
