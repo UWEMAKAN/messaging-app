@@ -2,12 +2,12 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'agents_users' })
 export class AgentsUsers {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'bigint' })
+  @Column()
   agentId: number;
 
-  @Column({ type: 'bigint' })
+  @Column()
   userId: number;
 }

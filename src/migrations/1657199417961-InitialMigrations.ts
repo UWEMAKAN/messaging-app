@@ -4,7 +4,7 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `CREATE TABLE "users" (
-        "id" bigserial PRIMARY KEY,
+        "id" serial PRIMARY KEY NOT NULL,
         "hashedPassword" varchar NOT NULL,
         "passwordSalt" varchar NOT NULL,
         "firstName" varchar NOT NULL,
@@ -16,7 +16,7 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
     );
     await queryRunner.query(
       `CREATE TABLE "agents" (
-        "id" bigserial PRIMARY KEY,
+        "id" serial PRIMARY KEY NOT NULL,
         "hashedPassword" varchar NOT NULL,
         "passwordSalt" varchar NOT NULL,
         "firstName" varchar NOT NULL,
@@ -28,21 +28,27 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
     );
     await queryRunner.query(
       `CREATE TABLE "messages" (
-        "id" bigserial PRIMARY KEY,
-        "userId" bigint NOT NULL,
+        "id" serial PRIMARY KEY NOT NULL,
+        "userId" integer NOT NULL,
         "body" varchar NOT NULL,
         "type" varchar NOT NULL,
-        "priority" bigint NOT NULL,
+        "priority" integer NOT NULL,
         "createdAt" timestamptz NOT NULL DEFAULT (now())
       )`,
     );
     await queryRunner.query(
       `CREATE TABLE "agents_users" (
-        "id" bigserial PRIMARY KEY,
-        "agentId" bigint NOT NULL,
-        "userId" bigint UNIQUE NOT NULL
+        "id" serial PRIMARY KEY NOT NULL,
+        "agentId" integer NOT NULL,
+        "userId" integer NOT NULL
       )`,
     );
+    await queryRunner.query(`CREATE INDEX ON "users" ("email") INCLUDE ("id")`);
+
+    await queryRunner.query(`CREATE INDEX ON "users" ("email") INCLUDE ("id")`);
+
+    await queryRunner.query(`CREATE UNIQUE INDEX ON "agents_users" ("userId")`);
+
     await queryRunner.query(
       `CREATE UNIQUE INDEX ON "agents_users" ("agentId", "userId")`,
     );

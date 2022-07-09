@@ -9,7 +9,7 @@ import {
 
 @Entity({ name: 'agents' })
 export class Agent {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()

@@ -5,13 +5,12 @@ import {
   CreateDateColumn,
   Timestamp,
   ManyToOne,
-  UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity({ name: 'messages' })
 export class Message {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
@@ -23,12 +22,9 @@ export class Message {
   @ManyToOne(() => User, (user: User) => user.messages)
   user: User;
 
-  @Column({ type: 'int' })
+  @Column()
   priority: number;
 
   @CreateDateColumn()
   createdAt: Timestamp;
-
-  @UpdateDateColumn()
-  updatedAt: Timestamp;
 }
