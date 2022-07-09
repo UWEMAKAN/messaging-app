@@ -8,7 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { entities } from './entities';
 import { services } from './services';
-import { commandHandlers, eventHandlers } from './application';
+import { commandHandlers, eventHandlers, queryHandlers } from './application';
 import { controllers } from './controllers';
 
 @Module({
@@ -35,6 +35,7 @@ import { controllers } from './controllers';
   providers: [
     ...commandHandlers,
     ...eventHandlers,
+    ...queryHandlers,
     ...services,
     AppService,
     {

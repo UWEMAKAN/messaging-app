@@ -25,6 +25,9 @@ export class Message {
   @Column()
   priority: number;
 
+  @Column()
+  sender: string;
+
   @CreateDateColumn()
   createdAt: Timestamp;
 }

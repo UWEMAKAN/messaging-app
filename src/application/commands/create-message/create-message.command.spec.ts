@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CreateMessageDto } from '../../../dtos';
 import { Message, User } from '../../../entities';
+import { MessageSenders } from '../../../utils';
 import {
   CreateMessageCommand,
   CreateMessageCommandHandler,
@@ -19,6 +20,7 @@ const response = {
   createdAt: new Date().toISOString(),
   priority: 1,
   id: 2,
+  sender: MessageSenders.USER,
 };
 
 describe(CreateMessageCommandHandler.name, () => {
@@ -56,7 +58,7 @@ describe(CreateMessageCommandHandler.name, () => {
   });
 
   it('should create return new message', async () => {
-    const command = new CreateMessageCommand(messageDto);
+    const command = new CreateMessageCommand(messageDto, MessageSenders.USER);
     const message = await handler.execute(command);
     expect.assertions(5);
     expect(userRepository.findOne).toBeCalledTimes(1);
@@ -70,6 +72,7 @@ describe(CreateMessageCommandHandler.name, () => {
       user: { id: messageDto.userId },
       type: messageDto.type,
       priority: 1,
+      sender: MessageSenders.USER,
     });
     expect(message).toStrictEqual(response);
   });
@@ -77,7 +80,7 @@ describe(CreateMessageCommandHandler.name, () => {
   it('should throw an internal server error when trying to find user', async () => {
     const message = 'Database error';
     userRepository.findOne = jest.fn().mockRejectedValue(new Error(message));
-    const command = new CreateMessageCommand(messageDto);
+    const command = new CreateMessageCommand(messageDto, MessageSenders.USER);
 
     try {
       await handler.execute(command);
@@ -92,7 +95,7 @@ describe(CreateMessageCommandHandler.name, () => {
   it('should throw a bad request error when user not found', async () => {
     const message = 'Invalid User';
     userRepository.findOne = jest.fn().mockReturnValue(null);
-    const command = new CreateMessageCommand(messageDto);
+    const command = new CreateMessageCommand(messageDto, MessageSenders.USER);
 
     try {
       await handler.execute(command);
@@ -107,7 +110,7 @@ describe(CreateMessageCommandHandler.name, () => {
   it('should throw a bad request error when a different user is found', async () => {
     const message = 'Invalid User';
     userRepository.findOne = jest.fn().mockReturnValue({ id: 5 });
-    const command = new CreateMessageCommand(messageDto);
+    const command = new CreateMessageCommand(messageDto, MessageSenders.USER);
 
     try {
       await handler.execute(command);
@@ -123,7 +126,7 @@ describe(CreateMessageCommandHandler.name, () => {
     const message = 'Database error';
     userRepository.findOne = jest.fn().mockResolvedValue({ id: 1 });
     messageRepository.save = jest.fn().mockRejectedValue(new Error(message));
-    const command = new CreateMessageCommand(messageDto);
+    const command = new CreateMessageCommand(messageDto, MessageSenders.USER);
 
     try {
       await handler.execute(command);

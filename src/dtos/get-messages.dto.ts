@@ -1,39 +1,27 @@
 import {
-  IsInt,
-  Min,
-  IsString,
-  IsNotEmpty,
-  IsIn,
+  IsOptional,
+  IsNumberString,
   IsDateString,
+  IsIn,
+  IsInt,
+  IsString,
+  Min,
 } from 'class-validator';
-import { MessageSenders, MessageTypes } from '../utils';
+import { MessageTypes } from '../utils';
 
-export class CreateMessageDto {
+export class GetUserMessagesDto {
   /**
-   * valid userId
+   * Id of the last message the user received.
+   * if messageId >= 0 messages with id after messageId will be streamed to the user
+   * else the user will simply be subscribed to the event stream;
    * @example 1
    */
-  @IsInt()
-  @Min(1)
-  userId: number;
-
-  /**
-   * message body
-   * @example I want to make enquiries about your loan products
-   */
-  @IsString()
-  @IsNotEmpty()
-  body: string;
-
-  /**
-   * valid message type
-   * @example TEXT
-   */
-  @IsIn(Object.values(MessageTypes))
-  type: string;
+  @IsOptional()
+  @IsNumberString()
+  public readonly messageId: number;
 }
 
-export class CreateMessageResponse {
+export class GetMessageResponse {
   /**
    * id of the new message
    * @example 1
@@ -65,13 +53,6 @@ export class CreateMessageResponse {
   type: string;
 
   /**
-   * valid message type
-   * @example USER
-   */
-  @IsIn(Object.values(MessageSenders))
-  sender: string;
-
-  /**
    * creation timestamp of message
    * @example '2022-07-09T10:20:34.414Z'
    */
@@ -86,4 +67,13 @@ export class CreateMessageResponse {
   @IsInt()
   @Min(1)
   priority?: number;
+}
+
+export class UserParams {
+  /**
+   * Id of the current user.
+   * @example 1
+   */
+  @IsNumberString()
+  public readonly userId: number;
 }

@@ -107,6 +107,36 @@ describe('Controllers (e2e)', () => {
       expect(typeof id).toBe('number');
       expect(priority).toBeUndefined();
     });
+
+    it('/users/1/messages (POST) 200 Ok', async () => {
+      const userBody = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(8),
+      };
+
+      const user = await request(app.getHttpServer())
+        .post('/users')
+        .send(userBody)
+        .expect(201);
+
+      const body = {
+        body: 'I want to take a loan',
+        userId: user.body.userId,
+        type: 'TEXT',
+      };
+
+      await request(app.getHttpServer())
+        .post('/users/messages')
+        .send(body)
+        .expect(200);
+
+      return await request(app.getHttpServer())
+        .get(`/users/${user.body.userId}/messages`)
+        .query({ messageId: 0 })
+        .expect(200);
+    });
   });
 
   describe('AgentsController', () => {

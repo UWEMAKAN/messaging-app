@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
 import { CreateMessageResponse } from '../../../dtos';
 import { ConnectionService } from '../../../services';
+import { MessageSenders } from '../../../utils';
 import {
   SendUserMessageEvent,
   SendUserMessageEventHandler,
@@ -51,6 +52,7 @@ describe(SendUserMessageEventHandler.name, () => {
       priority: 1,
       type: 'TEXT',
       createdAt: new Date().toISOString(),
+      sender: MessageSenders.USER,
     };
     const event = new SendUserMessageEvent(message);
     handler.handle(event);
@@ -71,6 +73,7 @@ describe(SendUserMessageEventHandler.name, () => {
       priority: 1,
       type: 'TEXT',
       createdAt: new Date().toISOString(),
+      sender: MessageSenders.USER,
     };
     const event = new SendUserMessageEvent(message);
     handler.handle(event);

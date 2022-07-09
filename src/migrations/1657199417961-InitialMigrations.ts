@@ -33,6 +33,7 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
         "body" varchar NOT NULL,
         "type" varchar NOT NULL,
         "priority" integer NOT NULL,
+        "sender" varchar NOT NULL,
         "createdAt" timestamptz NOT NULL DEFAULT (now())
       )`,
     );

@@ -1,15 +1,20 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Logger,
+  Param,
   Post,
+  Query,
+  UseInterceptors,
 } from '@nestjs/common';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import {
   CreateMessageCommand,
   CreateUserCommand,
+  GetUserMessagesQuery,
   SendUserMessageEvent,
 } from '../../application';
 import {
@@ -17,7 +22,11 @@ import {
   CreateMessageResponse,
   CreateUserDto,
   CreateUserResponse,
+  GetMessageResponse,
+  GetUserMessagesDto,
+  UserParams,
 } from '../../dtos';
+import { ConnectionInterceptor, MessageSenders } from '../../utils';
 
 @Controller('users')
 export class UsersController {
@@ -26,6 +35,7 @@ export class UsersController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly eventBus: EventBus,
+    private readonly queryBus: QueryBus,
   ) {
     this.logger = new Logger(UsersController.name);
   }
@@ -54,10 +64,29 @@ export class UsersController {
   ): Promise<CreateMessageResponse> {
     this.logger.log('sendMessage');
     const message: CreateMessageResponse = await this.commandBus.execute(
-      new CreateMessageCommand(dto),
+      new CreateMessageCommand(dto, MessageSenders.USER),
     );
     this.eventBus.publish(new SendUserMessageEvent(message));
     delete message.priority;
     return message;
+  }
+
+  /**
+   * Endpoint to stream user's messages to the user
+   * @param dto GetUserMessagesDto
+   * @param userParam UserParams
+   */
+  @Get('/:userId/messages')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(ConnectionInterceptor)
+  async getMessages(
+    @Query() dto: GetUserMessagesDto,
+    @Param() userParam: UserParams,
+  ): Promise<GetMessageResponse> {
+    if (dto.messageId !== undefined) {
+      return await this.queryBus.execute(
+        new GetUserMessagesQuery(dto, userParam),
+      );
+    }
   }
 }

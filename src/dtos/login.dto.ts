@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsInt, IsString, Min, MinLength } from 'class-validator';
 
 export class LoginDto {
   /**
@@ -20,15 +20,19 @@ export class LoginDto {
 export class UserLoginResponse {
   /**
    * id of the logged in user
-   * @example { userId: 1 }
+   * @example 1
    */
+  @IsInt()
+  @Min(1)
   userId: number;
 }
 
 export class AgentLoginResponse {
   /**
    * id of the logged in agent
-   * @example { agentId: 1 }
+   * @example 1
    */
+  @IsInt()
+  @Min(1)
   agentId: number;
 }
