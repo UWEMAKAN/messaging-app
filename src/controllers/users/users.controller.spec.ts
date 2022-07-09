@@ -1,9 +1,10 @@
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   CreateUserCommand,
   CreateMessageCommand,
   SendUserMessageEvent,
+  GetUserMessagesQuery,
 } from '../../application';
 import { CreateMessageDto, CreateUserDto } from '../../dtos';
 import { ConnectionService } from '../../services';
@@ -18,6 +19,9 @@ describe(UsersController.name, () => {
   const eventBus = {
     publish: jest.fn(),
   } as unknown as EventBus;
+  const queryBus = {
+    execute: jest.fn(),
+  } as unknown as QueryBus;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -25,6 +29,7 @@ describe(UsersController.name, () => {
       providers: [
         { provide: CommandBus, useValue: commandBus },
         { provide: EventBus, useValue: eventBus },
+        { provide: QueryBus, useValue: queryBus },
         ConnectionService,
       ],
     }).compile();
@@ -87,6 +92,27 @@ describe(UsersController.name, () => {
       expect(eventBus.publish).toBeCalledWith(
         new SendUserMessageEvent(message),
       );
+    });
+  });
+
+  describe('getMessages', () => {
+    const dto = { messageId: 1 };
+    const param = { userId: 1 };
+
+    it('should call queryBus.execute', async () => {
+      await controller.getMessages(dto, param);
+      expect.assertions(2);
+      expect(queryBus.execute).toBeCalledTimes(1);
+      expect(queryBus.execute).toBeCalledWith(
+        new GetUserMessagesQuery(dto, param),
+      );
+    });
+
+    it('should not call queryBus.execute', async () => {
+      dto.messageId = undefined;
+      await controller.getMessages(dto, param);
+      expect.assertions(1);
+      expect(queryBus.execute).not.toBeCalled();
     });
   });
 });

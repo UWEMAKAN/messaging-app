@@ -10,10 +10,11 @@ import {
   Query,
   UseInterceptors,
 } from '@nestjs/common';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import {
   CreateMessageCommand,
   CreateUserCommand,
+  GetUserMessagesQuery,
   SendUserMessageEvent,
 } from '../../application';
 import {
@@ -21,6 +22,7 @@ import {
   CreateMessageResponse,
   CreateUserDto,
   CreateUserResponse,
+  GetMessageResponse,
   GetUserMessagesDto,
   UserParams,
 } from '../../dtos';
@@ -33,6 +35,7 @@ export class UsersController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly eventBus: EventBus,
+    private readonly queryBus: QueryBus,
   ) {
     this.logger = new Logger(UsersController.name);
   }
@@ -79,7 +82,11 @@ export class UsersController {
   async getMessages(
     @Query() dto: GetUserMessagesDto,
     @Param() userParam: UserParams,
-  ) {
-    return { id: 20 };
+  ): Promise<GetMessageResponse> {
+    if (dto.messageId !== undefined) {
+      return await this.queryBus.execute(
+        new GetUserMessagesQuery(dto, userParam),
+      );
+    }
   }
 }
