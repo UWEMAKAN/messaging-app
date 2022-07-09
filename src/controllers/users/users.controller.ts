@@ -26,7 +26,7 @@ import {
   GetUserMessagesDto,
   UserParams,
 } from '../../dtos';
-import { ConnectionInterceptor } from '../../utils';
+import { ConnectionInterceptor, MessageSenders } from '../../utils';
 
 @Controller('users')
 export class UsersController {
@@ -64,7 +64,7 @@ export class UsersController {
   ): Promise<CreateMessageResponse> {
     this.logger.log('sendMessage');
     const message: CreateMessageResponse = await this.commandBus.execute(
-      new CreateMessageCommand(dto),
+      new CreateMessageCommand(dto, MessageSenders.USER),
     );
     this.eventBus.publish(new SendUserMessageEvent(message));
     delete message.priority;

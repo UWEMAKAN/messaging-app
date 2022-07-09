@@ -35,31 +35,45 @@ export class GetUserMessagesQueryHandler
   async execute(query: GetUserMessagesQuery) {
     const { userId, messageId } = query;
     let readStream: Readable = null;
+
     try {
       readStream = await this.messageRepository
         .createQueryBuilder()
         .where('id > :messageId', { messageId })
         .andWhere(`"userId" = :userId`, { userId })
         .orderBy(`"createdAt"`, 'ASC')
-        .select(['"id"', '"userId"', '"type"', '"createdAt"', '"body"'])
+        .select([
+          '"id"',
+          '"userId"',
+          '"type"',
+          '"createdAt"',
+          '"body"',
+          '"sender"',
+        ])
         .stream();
     } catch (err) {
+      this.logger.log('Error here');
       this.logger.log(JSON.stringify(err));
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     const transformStream = new Transform({
       objectMode: true,
       transform(chunk, encoding, callback) {
+        console.log({ chunk });
         this.push(chunk);
         callback();
       },
     });
+
+    transformStream.push('');
     readStream.pipe(transformStream);
     const messages = fromStream<Messages>(transformStream);
     const conn = this.connectionService.getUserConnection(userId);
     return messages.pipe(
       map((message) => {
-        conn.write(`data: ${JSON.stringify(message)}\n\n`);
+        if (message) {
+          conn.write(`data: ${JSON.stringify(message)}\n\n`);
+        }
       }),
     );
   }
@@ -72,4 +86,5 @@ interface Messages {
   createdAt: string;
   ticketId: number;
   userId: number;
+  sender: string;
 }

@@ -8,6 +8,7 @@ import {
 } from '../../application';
 import { CreateMessageDto, CreateUserDto } from '../../dtos';
 import { ConnectionService } from '../../services';
+import { MessageSenders } from '../../utils';
 import { UsersController } from './users.controller';
 
 describe(UsersController.name, () => {
@@ -85,7 +86,7 @@ describe(UsersController.name, () => {
       expect.assertions(5);
       expect(commandBus.execute).toBeCalledTimes(1);
       expect(commandBus.execute).toBeCalledWith(
-        new CreateMessageCommand(messageDto),
+        new CreateMessageCommand(messageDto, MessageSenders.USER),
       );
       expect(message).toStrictEqual(response);
       expect(eventBus.publish).toBeCalledTimes(1);

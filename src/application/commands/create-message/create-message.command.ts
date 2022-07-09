@@ -5,10 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message, User } from '../../../entities';
 import { CreateMessageDto, CreateMessageResponse } from '../../../dtos';
-import { getMessagePriority } from '../../../utils';
+import { getMessagePriority, MessageSenders } from '../../../utils';
 
 export class CreateMessageCommand implements ICommand {
-  constructor(public readonly data: CreateMessageDto) {}
+  constructor(
+    public readonly data: CreateMessageDto,
+    public readonly sender: MessageSenders,
+  ) {}
 }
 
 @CommandHandler(CreateMessageCommand)
@@ -52,13 +55,14 @@ export class CreateMessageCommandHandler
         user: { id: command.data.userId },
         type: command.data.type,
         priority: priorityLevel,
+        sender: command.sender,
       });
     } catch (err) {
       this.logger.log(JSON.stringify(err));
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    const { body, type, createdAt, id, priority } = message;
+    const { body, type, createdAt, id, priority, sender } = message;
 
     return {
       id,
@@ -67,6 +71,7 @@ export class CreateMessageCommandHandler
       type,
       createdAt: createdAt.toString(),
       priority,
+      sender,
     };
   }
 }

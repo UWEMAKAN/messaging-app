@@ -6,7 +6,7 @@ import {
   IsIn,
   IsDateString,
 } from 'class-validator';
-import { MessageTypes } from '../utils';
+import { MessageSenders, MessageTypes } from '../utils';
 
 export class CreateMessageDto {
   /**
@@ -63,6 +63,13 @@ export class CreateMessageResponse {
    */
   @IsIn(Object.values(MessageTypes))
   type: string;
+
+  /**
+   * valid message type
+   * @example USER
+   */
+  @IsIn(Object.values(MessageSenders))
+  sender: string;
 
   /**
    * creation timestamp of message
