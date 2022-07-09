@@ -62,13 +62,6 @@ describe(CreateUserCommandHandler.name, () => {
       const command = new CreateUserCommand(createUserDto);
       try {
         await handler.execute(command);
-        expect.assertions(4);
-        expect(userRepository.findOne).toBeCalledTimes(1);
-        expect(userRepository.save).not.toBeCalled();
-        expect(userRepository.findOne).toThrowError(new Error(message));
-        expect(handler.execute).toThrowError(
-          new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
-        );
       } catch (err) {
         expect.assertions(1);
         expect(err).toStrictEqual(
@@ -85,10 +78,6 @@ describe(CreateUserCommandHandler.name, () => {
       const command = new CreateUserCommand(createUserDto);
       try {
         await handler.execute(command);
-        expect.assertions(3);
-        expect(userRepository.findOne).toBeCalledTimes(1);
-        expect(userRepository.save).not.toBeCalled();
-        expect(handler.execute).toThrowError(message);
       } catch (err) {
         expect.assertions(1);
         expect(err).toStrictEqual(
@@ -104,10 +93,6 @@ describe(CreateUserCommandHandler.name, () => {
       const command = new CreateUserCommand(createUserDto);
       try {
         await handler.execute(command);
-        expect.assertions(3);
-        expect(userRepository.findOne).toBeCalledTimes(1);
-        expect(userRepository.save).toBeCalledTimes(1);
-        expect(handler.execute).toThrowError('connection error');
       } catch (err) {
         expect.assertions(1);
         expect(err).toStrictEqual(
