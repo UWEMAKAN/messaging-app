@@ -8,7 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { entities } from './entities';
 import { services } from './services';
-import { commandHandlers } from './application';
+import { commandHandlers, eventHandlers } from './application';
 import { controllers } from './controllers';
 
 @Module({
@@ -25,6 +25,7 @@ import { controllers } from './controllers';
         database: configService.get<string>('DB_NAME'),
         entities: [...entities],
         synchronize: false,
+        logging: false,
         migrationsTableName: configService.get<string>('DB_MIGRATION_TABLE'),
       }))(new ConfigService()),
     ),
@@ -33,6 +34,7 @@ import { controllers } from './controllers';
   controllers: [...controllers, AppController],
   providers: [
     ...commandHandlers,
+    ...eventHandlers,
     ...services,
     AppService,
     {

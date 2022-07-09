@@ -61,7 +61,7 @@ export class CreateMessageResponse {
    * valid message type
    * @example TEXT
    */
-  @IsString()
+  @IsIn(Object.values(MessageTypes))
   type: string;
 
   /**

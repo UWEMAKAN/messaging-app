@@ -59,6 +59,6 @@ export class CreateAgentCommandHandler
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    return { agentId: +agent.id };
+    return { agentId: agent.id };
   }
 }
