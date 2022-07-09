@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsInt, IsString, Min, MinLength } from 'class-validator';
 
 export class CreateAgentDto {
   /**
@@ -36,7 +36,9 @@ export class CreateAgentDto {
 export class CreateAgentResponse {
   /**
    * id of the newly created agent
-   * @example { agentId: 1 }
+   * @example 1
    */
+  @IsInt()
+  @Min(1)
   agentId: number;
 }

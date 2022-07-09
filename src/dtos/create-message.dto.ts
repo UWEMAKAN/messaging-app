@@ -6,7 +6,7 @@ import {
   IsIn,
   IsDateString,
 } from 'class-validator';
-import { MessagePriorities, MessageTypes } from '../utils';
+import { MessageTypes } from '../utils';
 
 export class CreateMessageDto {
   /**
@@ -44,7 +44,7 @@ export class CreateMessageResponse {
 
   /**
    * message body
-   * @example I want to make enquiries about your loan products
+   * @example 'I want to make enquiries about your loan products'
    */
   @IsString()
   body: string;
@@ -66,15 +66,17 @@ export class CreateMessageResponse {
 
   /**
    * creation timestamp of message
-   * @example ''
+   * @example '2022-07-09T10:20:34.414Z'
    */
   @IsDateString()
   createdAt: string;
 
   /**
-   * priority of message
+   * Priority of the message.
+   * The small the value, the higher the priority.
    * @example 1
    */
-  @IsIn(Object.values(MessagePriorities))
+  @IsInt()
+  @Min(1)
   priority?: number;
 }

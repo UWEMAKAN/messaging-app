@@ -6,6 +6,7 @@ import {
   SendUserMessageEvent,
 } from '../../application';
 import { CreateMessageDto, CreateUserDto } from '../../dtos';
+import { ConnectionService } from '../../services';
 import { UsersController } from './users.controller';
 
 describe(UsersController.name, () => {
@@ -24,6 +25,7 @@ describe(UsersController.name, () => {
       providers: [
         { provide: CommandBus, useValue: commandBus },
         { provide: EventBus, useValue: eventBus },
+        ConnectionService,
       ],
     }).compile();
 
