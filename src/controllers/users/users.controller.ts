@@ -15,7 +15,7 @@ import {
   CreateMessageCommand,
   CreateUserCommand,
   GetUserMessagesQuery,
-  SendUserMessageEvent,
+  SendMessageToAgentsEvent,
 } from '../../application';
 import {
   CreateMessageDto,
@@ -66,7 +66,7 @@ export class UsersController {
     const message: CreateMessageResponse = await this.commandBus.execute(
       new CreateMessageCommand(dto, MessageSenders.USER),
     );
-    this.eventBus.publish(new SendUserMessageEvent(message));
+    this.eventBus.publish(new SendMessageToAgentsEvent(message));
     delete message.priority;
     return message;
   }

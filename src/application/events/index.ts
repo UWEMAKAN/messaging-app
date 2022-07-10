@@ -1,1 +1,1 @@
-export * from './send-user-message/send-user-message.event';
+export * from './send-message-to-agents/send-message-to-agents.event';

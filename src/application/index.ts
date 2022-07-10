@@ -3,7 +3,7 @@ import {
   CreateMessageCommandHandler,
   CreateUserCommandHandler,
 } from './commands';
-import { SendUserMessageEventHandler } from './events';
+import { SendMessageToAgentsEventHandler } from './events';
 import { GetUserMessagesQueryHandler } from './queries';
 
 export * from './commands';
@@ -16,6 +16,6 @@ export const commandHandlers = [
   CreateMessageCommandHandler,
 ];
 
-export const eventHandlers = [SendUserMessageEventHandler];
+export const eventHandlers = [SendMessageToAgentsEventHandler];
 
 export const queryHandlers = [GetUserMessagesQueryHandler];

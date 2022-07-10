@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   CreateUserCommand,
   CreateMessageCommand,
-  SendUserMessageEvent,
+  SendMessageToAgentsEvent,
   GetUserMessagesQuery,
 } from '../../application';
 import { CreateMessageDto, CreateUserDto } from '../../dtos';
@@ -91,7 +91,7 @@ describe(UsersController.name, () => {
       expect(message).toStrictEqual(response);
       expect(eventBus.publish).toBeCalledTimes(1);
       expect(eventBus.publish).toBeCalledWith(
-        new SendUserMessageEvent(message),
+        new SendMessageToAgentsEvent(message),
       );
     });
   });
