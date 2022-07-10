@@ -23,7 +23,7 @@ import {
   CreateUserDto,
   CreateUserResponse,
   GetMessageResponse,
-  GetUserMessagesDto,
+  GetMessagesDto,
   UserParams,
 } from '../../dtos';
 import { ConnectionInterceptor, MessageSenders } from '../../utils';
@@ -73,14 +73,14 @@ export class UsersController {
 
   /**
    * Endpoint to stream user's messages to the user
-   * @param dto GetUserMessagesDto
+   * @param dto GetMessagesDto
    * @param userParam UserParams
    */
   @Get('/:userId/messages')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(ConnectionInterceptor)
   async getMessages(
-    @Query() dto: GetUserMessagesDto,
+    @Query() dto: GetMessagesDto,
     @Param() userParam: UserParams,
   ): Promise<GetMessageResponse> {
     if (dto.messageId !== undefined) {

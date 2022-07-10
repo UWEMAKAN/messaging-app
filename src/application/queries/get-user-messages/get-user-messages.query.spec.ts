@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Readable } from 'stream';
 import { Message } from '../../../entities';
 import { ConnectionService } from '../../../services';
+import { MessageSenders } from '../../../utils';
 import {
   GetUserMessagesQuery,
   GetUserMessagesQueryHandler,
@@ -22,6 +23,7 @@ describe(GetUserMessagesQueryHandler.name, () => {
       body: 'I want to take a loan',
       createdAt,
       type: 'TEXT',
+      sender: MessageSenders.USER,
     }),
   });
   jest.spyOn(readStream, 'pipe');
@@ -53,7 +55,7 @@ describe(GetUserMessagesQueryHandler.name, () => {
     expect(handler).toBeDefined();
   });
 
-  it('should create return messages', async () => {
+  it('should fetch return messages', async () => {
     const stream = jest.fn().mockResolvedValue(readStream);
     const select = jest.fn().mockReturnValue({ stream });
     const orderBy = jest.fn().mockReturnValue({ select });

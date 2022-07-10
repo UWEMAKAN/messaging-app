@@ -1,26 +1,25 @@
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { map } from 'rxjs';
-import { Readable, Transform } from 'stream';
+import { Stream, Transform } from 'stream';
 import { Repository } from 'typeorm';
 import { Message } from '../../../entities';
 import { fromStream } from '../../../utils';
-import { GetMessagesDto, UserParams, GetMessageResponse } from '../../../dtos';
+import { AgentParams, GetMessageResponse, GetMessagesDto } from '../../../dtos';
 import { ConnectionService } from '../../../services';
 
-export class GetUserMessagesQuery implements IQuery {
-  public readonly userId: number;
+export class GetAgentMessagesQuery implements IQuery {
+  public readonly agentId: number;
   public readonly messageId: number;
-  constructor(dto: GetMessagesDto, param: UserParams) {
-    this.userId = +param.userId;
+  constructor(dto: GetMessagesDto, param: AgentParams) {
+    this.agentId = +param.agentId;
     this.messageId = +dto.messageId;
   }
 }
 
-@QueryHandler(GetUserMessagesQuery)
-export class GetUserMessagesQueryHandler
-  implements IQueryHandler<GetUserMessagesQuery>
+@QueryHandler(GetAgentMessagesQuery)
+export class GetAgentMessagesQueryHandler
+  implements IQueryHandler<GetAgentMessagesQuery>
 {
   private readonly logger: Logger;
 
@@ -29,19 +28,23 @@ export class GetUserMessagesQueryHandler
     private readonly messageRepository: Repository<Message>,
     private readonly connectionService: ConnectionService,
   ) {
-    this.logger = new Logger(GetUserMessagesQueryHandler.name);
+    this.logger = new Logger(GetAgentMessagesQueryHandler.name);
   }
 
-  async execute(query: GetUserMessagesQuery) {
-    const { userId, messageId } = query;
-    let readStream: Readable = null;
-
+  async execute(query: GetAgentMessagesQuery): Promise<any> {
+    const { messageId, agentId } = query;
+    const conn = this.connectionService.getAgentConnection(agentId);
+    if (!conn?.write) {
+      return;
+    }
+    let readStream: Stream = null;
     try {
       readStream = await this.messageRepository
         .createQueryBuilder()
         .where('id > :messageId', { messageId })
-        .andWhere(`"userId" = :userId`, { userId })
-        .orderBy(`"createdAt"`, 'ASC')
+        .groupBy('"userId"')
+        .orderBy(`"priority"`, 'ASC')
+        .addOrderBy(`"createdAt"`, 'DESC')
         .select([
           '"id"',
           '"userId"',
@@ -49,10 +52,10 @@ export class GetUserMessagesQueryHandler
           '"createdAt"',
           '"body"',
           '"sender"',
+          '"priority"',
         ])
         .stream();
     } catch (err) {
-      this.logger.log('Error here');
       this.logger.log(JSON.stringify(err));
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -64,17 +67,7 @@ export class GetUserMessagesQueryHandler
         callback();
       },
     });
-
-    transformStream.push('');
     readStream.pipe(transformStream);
-    const messages = fromStream<GetMessageResponse>(transformStream);
-    const conn = this.connectionService.getUserConnection(userId);
-    return messages.pipe(
-      map((message) => {
-        if (message) {
-          conn.write(`data: ${JSON.stringify(message)}\n\n`);
-        }
-      }),
-    );
+    return fromStream<GetMessageResponse>(transformStream);
   }
 }
