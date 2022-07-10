@@ -41,17 +41,15 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
       `CREATE TABLE "agents_users" (
         "id" serial PRIMARY KEY NOT NULL,
         "agentId" integer NOT NULL,
-        "userId" integer NOT NULL
+        "userId" integer UNIQUE NOT NULL
       )`,
     );
     await queryRunner.query(`CREATE INDEX ON "users" ("email") INCLUDE ("id")`);
 
     await queryRunner.query(`CREATE INDEX ON "users" ("email") INCLUDE ("id")`);
 
-    await queryRunner.query(`CREATE UNIQUE INDEX ON "agents_users" ("userId")`);
-
     await queryRunner.query(
-      `CREATE UNIQUE INDEX ON "agents_users" ("agentId", "userId")`,
+      `CREATE UNIQUE INDEX ON "agents_users" ("userId", "agentId")`,
     );
     await queryRunner.query(
       `ALTER TABLE "messages" ADD FOREIGN KEY ("userId") REFERENCES "users" ("id")`,

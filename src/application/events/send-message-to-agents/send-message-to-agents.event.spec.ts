@@ -4,13 +4,13 @@ import { CreateMessageResponse } from '../../../dtos';
 import { ConnectionService } from '../../../services';
 import { MessageSenders } from '../../../utils';
 import {
-  SendUserMessageEvent,
-  SendUserMessageEventHandler,
-} from './send-user-message.event';
+  SendMessageToAgentsEvent,
+  SendMessageToAgentsEventHandler,
+} from './send-message-to-agents.event';
 
-describe(SendUserMessageEventHandler.name, () => {
+describe(SendMessageToAgentsEventHandler.name, () => {
   let module: TestingModule;
-  let handler: SendUserMessageEventHandler;
+  let handler: SendMessageToAgentsEventHandler;
 
   const conn = {
     write: jest.fn().mockReturnValue(true),
@@ -26,12 +26,12 @@ describe(SendUserMessageEventHandler.name, () => {
     module = await Test.createTestingModule({
       providers: [
         { provide: ConnectionService, useValue: connectionService },
-        SendUserMessageEventHandler,
+        SendMessageToAgentsEventHandler,
       ],
     }).compile();
 
-    handler = module.get<SendUserMessageEventHandler>(
-      SendUserMessageEventHandler,
+    handler = module.get<SendMessageToAgentsEventHandler>(
+      SendMessageToAgentsEventHandler,
     );
   });
 
@@ -40,11 +40,11 @@ describe(SendUserMessageEventHandler.name, () => {
     await module.close();
   });
 
-  it(`${SendUserMessageEventHandler.name} should be defined`, () => {
+  it(`${SendMessageToAgentsEventHandler.name} should be defined`, () => {
     expect(handler).toBeDefined();
   });
 
-  test('should call connectionService.getAgentConnections and conn.write if agent is connected', () => {
+  it('should call connectionService.getAgentConnections and conn.write and send to agents', () => {
     const message: CreateMessageResponse = {
       id: 1,
       body: 'I want to take a loan',
@@ -54,7 +54,7 @@ describe(SendUserMessageEventHandler.name, () => {
       createdAt: new Date().toISOString(),
       sender: MessageSenders.USER,
     };
-    const event = new SendUserMessageEvent(message);
+    const event = new SendMessageToAgentsEvent(message);
     handler.handle(event);
     expect.assertions(4);
     expect(connectionService.getAgentConnections).toBeCalledTimes(1);
@@ -63,7 +63,7 @@ describe(SendUserMessageEventHandler.name, () => {
     expect(conn.write).toReturnWith(true);
   });
 
-  test('should call connectionService.getAgentConnections, conn.write and connectionService.removeAgentConnection', () => {
+  it('should call connectionService.getAgentConnections, conn.write', () => {
     conn.write = jest.fn().mockReturnValue(false);
     connectionService.removeAgentConnection = jest.fn();
     const message: CreateMessageResponse = {
@@ -75,12 +75,10 @@ describe(SendUserMessageEventHandler.name, () => {
       createdAt: new Date().toISOString(),
       sender: MessageSenders.USER,
     };
-    const event = new SendUserMessageEvent(message);
+    const event = new SendMessageToAgentsEvent(message);
     handler.handle(event);
-    expect.assertions(6);
+    expect.assertions(4);
     expect(connectionService.getAgentConnections).toBeCalledTimes(1);
-    expect(connectionService.removeAgentConnection).toBeCalledTimes(1);
-    expect(connectionService.removeAgentConnection).toBeCalledWith(1);
     expect(conn.write).toBeCalledTimes(1);
     expect(conn.write).toBeCalledWith(`data: ${JSON.stringify(message)}\n\n`);
     expect(conn.write).toReturnWith(false);
