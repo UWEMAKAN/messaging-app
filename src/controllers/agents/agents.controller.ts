@@ -47,12 +47,14 @@ export class AgentsController {
 
   /**
    * Endpoint for agents to send a new message
-   * @param dto CreateAgentDto
-   * @returns CreateAgentResponse
+   * @param dto CreateAgentMessageDto
+   * @returns CreateMessageResponse
    */
   @Post('/messages')
   @HttpCode(HttpStatus.OK)
-  async createMessage(@Body() dto: CreateAgentMessageDto) {
+  async sendMessage(
+    @Body() dto: CreateAgentMessageDto,
+  ): Promise<CreateMessageResponse> {
     await this.commandBus.execute(
       new AssignAgentCommand(dto.agentId, dto.userId),
     );

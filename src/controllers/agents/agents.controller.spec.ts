@@ -85,7 +85,7 @@ describe('AgentsController', () => {
       createdAt: new Date().toISOString(),
     };
     commandBus.execute = jest.fn().mockResolvedValue(response);
-    const message = await controller.createMessage(createMessageDto);
+    const message = await controller.sendMessage(createMessageDto);
     expect.assertions(6);
     expect(commandBus.execute).toBeCalledTimes(2);
     expect(commandBus.execute).toHaveBeenNthCalledWith(
