@@ -108,7 +108,7 @@ describe('Controllers (e2e)', () => {
       expect(priority).toBeUndefined();
     });
 
-    it('/users/1/messages (POST) 200 Ok', async () => {
+    it('/users/:userId/messages (GET) 200 Ok', async () => {
       const userBody = {
         email: randomEmail(),
         firstName: randomString(7),
@@ -164,6 +164,44 @@ describe('Controllers (e2e)', () => {
         .post('/agents')
         .send(body)
         .expect(400);
+    });
+
+    it('/agents/messages (POST) 200 Ok', async () => {
+      const userBody = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(8),
+      };
+
+      const user = await request(app.getHttpServer())
+        .post('/users')
+        .send(userBody)
+        .expect(201);
+
+      const agentBody = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(8),
+      };
+
+      const agent = await request(app.getHttpServer())
+        .post('/agents')
+        .send(agentBody)
+        .expect(201);
+
+      const body = {
+        body: 'I want to take a loan',
+        userId: user.body.userId,
+        agentId: agent.body.agentId,
+        type: 'TEXT',
+      };
+
+      await request(app.getHttpServer())
+        .post('/agents/messages')
+        .send(body)
+        .expect(200);
     });
   });
 

@@ -1,9 +1,13 @@
 import {
+  AssignAgentCommandHandler,
   CreateAgentCommandHandler,
   CreateMessageCommandHandler,
   CreateUserCommandHandler,
 } from './commands';
-import { SendMessageToAgentsEventHandler } from './events';
+import {
+  SendMessageToAgentsEventHandler,
+  SendMessageToUserEventHandler,
+} from './events';
 import { GetUserMessagesQueryHandler } from './queries';
 
 export * from './commands';
@@ -14,8 +18,12 @@ export const commandHandlers = [
   CreateAgentCommandHandler,
   CreateUserCommandHandler,
   CreateMessageCommandHandler,
+  AssignAgentCommandHandler,
 ];
 
-export const eventHandlers = [SendMessageToAgentsEventHandler];
+export const eventHandlers = [
+  SendMessageToAgentsEventHandler,
+  SendMessageToUserEventHandler,
+];
 
 export const queryHandlers = [GetUserMessagesQueryHandler];
