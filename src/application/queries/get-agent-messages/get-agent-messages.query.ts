@@ -7,6 +7,7 @@ import { Message } from '../../../entities';
 import { fromStream } from '../../../utils';
 import { AgentParams, GetMessageResponse, GetMessagesDto } from '../../../dtos';
 import { ConnectionService } from '../../../services';
+import { map, Observable } from 'rxjs';
 
 export class GetAgentMessagesQuery implements IQuery {
   public readonly agentId: number;
@@ -31,13 +32,10 @@ export class GetAgentMessagesQueryHandler
     this.logger = new Logger(GetAgentMessagesQueryHandler.name);
   }
 
-  async execute(query: GetAgentMessagesQuery): Promise<any> {
+  async execute(query: GetAgentMessagesQuery): Promise<Observable<void>> {
     const { messageId, agentId } = query;
-    const conn = this.connectionService.getAgentConnection(agentId);
-    if (!conn?.write) {
-      return;
-    }
     let readStream: Stream = null;
+
     try {
       readStream = await this.messageRepository
         .createQueryBuilder()
@@ -59,15 +57,27 @@ export class GetAgentMessagesQueryHandler
       this.logger.log(JSON.stringify(err));
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     const transformStream = new Transform({
       objectMode: true,
       transform(chunk, encoding, callback) {
-        console.log({ chunk });
         this.push(chunk);
         callback();
       },
     });
+
+    transformStream.push('');
     readStream.pipe(transformStream);
-    return fromStream<GetMessageResponse>(transformStream);
+    const messages = fromStream<GetMessageResponse>(transformStream);
+    const conn = this.connectionService.getAgentConnection(agentId);
+    if (conn) {
+      return messages.pipe(
+        map((message) => {
+          if (message) {
+            conn.write(`data: ${JSON.stringify(message)}\n\n`);
+          }
+        }),
+      );
+    }
   }
 }

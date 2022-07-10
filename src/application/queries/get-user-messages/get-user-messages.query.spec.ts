@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Response } from 'express';
 import { Readable } from 'stream';
 import { Message } from '../../../entities';
 import { ConnectionService } from '../../../services';
@@ -32,12 +33,18 @@ describe(GetUserMessagesQueryHandler.name, () => {
     createQueryBuilder: jest.fn(),
   };
 
+  const conn = { write: jest.fn() } as unknown as Response;
+
+  const connectionService = {
+    getUserConnection: jest.fn().mockReturnValue(conn),
+  } as unknown as ConnectionService;
+
   beforeEach(async () => {
     module = await Test.createTestingModule({
       providers: [
         GetUserMessagesQueryHandler,
         { provide: getRepositoryToken(Message), useValue: messageRepository },
-        ConnectionService,
+        { provide: ConnectionService, useValue: connectionService },
       ],
     }).compile();
 
@@ -55,7 +62,7 @@ describe(GetUserMessagesQueryHandler.name, () => {
     expect(handler).toBeDefined();
   });
 
-  it('should fetch return messages', async () => {
+  it('should fetch and return messages to the user', async () => {
     const stream = jest.fn().mockResolvedValue(readStream);
     const select = jest.fn().mockReturnValue({ stream });
     const orderBy = jest.fn().mockReturnValue({ select });

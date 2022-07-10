@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Readable, Transform } from 'stream';
 import { Repository } from 'typeorm';
 import { Message } from '../../../entities';
@@ -32,7 +32,7 @@ export class GetUserMessagesQueryHandler
     this.logger = new Logger(GetUserMessagesQueryHandler.name);
   }
 
-  async execute(query: GetUserMessagesQuery) {
+  async execute(query: GetUserMessagesQuery): Promise<Observable<void>> {
     const { userId, messageId } = query;
     let readStream: Readable = null;
 
@@ -52,14 +52,13 @@ export class GetUserMessagesQueryHandler
         ])
         .stream();
     } catch (err) {
-      this.logger.log('Error here');
       this.logger.log(JSON.stringify(err));
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     const transformStream = new Transform({
       objectMode: true,
       transform(chunk, encoding, callback) {
-        console.log({ chunk });
         this.push(chunk);
         callback();
       },
@@ -69,12 +68,14 @@ export class GetUserMessagesQueryHandler
     readStream.pipe(transformStream);
     const messages = fromStream<GetMessageResponse>(transformStream);
     const conn = this.connectionService.getUserConnection(userId);
-    return messages.pipe(
-      map((message) => {
-        if (message) {
-          conn.write(`data: ${JSON.stringify(message)}\n\n`);
-        }
-      }),
-    );
+    if (conn) {
+      return messages.pipe(
+        map((message) => {
+          if (message) {
+            conn.write(`data: ${JSON.stringify(message)}\n\n`);
+          }
+        }),
+      );
+    }
   }
 }
