@@ -8,7 +8,11 @@ import {
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateAgentCommand } from '../../application';
-import { CreateAgentDto, CreateAgentResponse } from '../../dtos';
+import {
+  CreateAgentDto,
+  CreateAgentMessageDto,
+  CreateAgentResponse,
+} from '../../dtos';
 
 @Controller('agents')
 export class AgentsController {
@@ -28,5 +32,11 @@ export class AgentsController {
   async createAgent(@Body() dto: CreateAgentDto): Promise<CreateAgentResponse> {
     this.logger.log('createAgent');
     return await this.commandBus.execute(new CreateAgentCommand(dto));
+  }
+
+  @Post('/messages')
+  @HttpCode(HttpStatus.OK)
+  async createMessage(@Body() dto: CreateAgentMessageDto) {
+    //
   }
 }

@@ -33,6 +33,39 @@ export class CreateMessageDto {
   type: string;
 }
 
+export class CreateAgentMessageDto {
+  /**
+   * valid userId
+   * @example 1
+   */
+  @IsInt()
+  @Min(1)
+  userId: number;
+
+  /**
+   * valid agentId
+   * @example 1
+   */
+  @IsInt()
+  @Min(1)
+  agentId: number;
+
+  /**
+   * message body
+   * @example I want to make enquiries about your loan products
+   */
+  @IsString()
+  @IsNotEmpty()
+  body: string;
+
+  /**
+   * valid message type
+   * @example TEXT
+   */
+  @IsIn(Object.values(MessageTypes))
+  type: string;
+}
+
 export class CreateMessageResponse {
   /**
    * id of the new message
