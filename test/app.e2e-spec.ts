@@ -67,6 +67,23 @@ describe('Controllers (e2e)', () => {
       return request(app.getHttpServer()).post('/users').send(body).expect(400);
     });
 
+    it('/users/:userId (GET) 200 Ok', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(5),
+        password: randomString(8),
+      };
+      const user = await request(app.getHttpServer())
+        .post('/users')
+        .send(body)
+        .expect(201);
+
+      return await request(app.getHttpServer())
+        .get(`/users/${user.body.userId}`)
+        .expect(200);
+    });
+
     it('/users/messages (POST) 200 Ok', async () => {
       const userBody = {
         email: randomEmail(),

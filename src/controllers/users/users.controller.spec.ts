@@ -5,6 +5,7 @@ import {
   CreateMessageCommand,
   SendMessageToAgentsEvent,
   GetUserMessagesQuery,
+  GetUserDetailsQuery,
 } from '../../application';
 import { CreateMessageDto, CreateUserDto } from '../../dtos';
 import { ConnectionService } from '../../services';
@@ -114,6 +115,19 @@ describe(UsersController.name, () => {
       await controller.getMessages(dto, param);
       expect.assertions(1);
       expect(queryBus.execute).not.toBeCalled();
+    });
+  });
+
+  describe('getUserDetails', () => {
+    const param = { userId: 1 };
+
+    it('should call queryBus.execute', async () => {
+      await controller.getUserDetails(param);
+      expect.assertions(2);
+      expect(queryBus.execute).toBeCalledTimes(1);
+      expect(queryBus.execute).toBeCalledWith(
+        new GetUserDetailsQuery(+param.userId),
+      );
     });
   });
 });

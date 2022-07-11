@@ -14,6 +14,7 @@ import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import {
   CreateMessageCommand,
   CreateUserCommand,
+  GetUserDetailsQuery,
   GetUserMessagesQuery,
   SendMessageToAgentsEvent,
 } from '../../application';
@@ -24,6 +25,7 @@ import {
   CreateUserResponse,
   GetMessageResponse,
   GetMessagesDto,
+  UserDetailsResponse,
   UserParams,
 } from '../../dtos';
 import { ConnectionInterceptor, MessageSenders } from '../../utils';
@@ -89,5 +91,20 @@ export class UsersController {
         new GetUserMessagesQuery(dto, userParam),
       );
     }
+  }
+
+  /**
+   * Endpoint to fetch user details
+   * @param userParam UserParams
+   * @returns UserDetailsResponse
+   */
+  @Get('/:userId')
+  @HttpCode(HttpStatus.OK)
+  async getUserDetails(
+    @Param() userParam: UserParams,
+  ): Promise<UserDetailsResponse> {
+    return await this.queryBus.execute(
+      new GetUserDetailsQuery(+userParam.userId),
+    );
   }
 }
