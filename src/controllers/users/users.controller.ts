@@ -72,9 +72,10 @@ export class UsersController {
   }
 
   /**
-   * Endpoint to stream user's messages to the user
+   * Endpoint to stream messages to the user
    * @param dto GetMessagesDto
    * @param userParam UserParams
+   * @returns GetMessageResponse
    */
   @Get('/:userId/messages')
   @HttpCode(HttpStatus.OK)

@@ -1,9 +1,10 @@
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   AssignAgentCommand,
   CreateAgentCommand,
   CreateMessageCommand,
+  GetAgentMessagesQuery,
   SendMessageToAgentsEvent,
   SendMessageToUserEvent,
 } from '../../application';
@@ -12,6 +13,7 @@ import {
   CreateAgentMessageDto,
   CreateMessageResponse,
 } from '../../dtos';
+import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 import { AgentsController } from './agents.controller';
 
@@ -21,8 +23,12 @@ describe('AgentsController', () => {
   const commandBus = {
     execute: jest.fn(),
   } as unknown as CommandBus;
-
-  const eventBus = { publish: jest.fn() } as unknown as EventBus;
+  const eventBus = {
+    publish: jest.fn(),
+  } as unknown as EventBus;
+  const queryBus = {
+    execute: jest.fn(),
+  } as unknown as QueryBus;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -30,6 +36,8 @@ describe('AgentsController', () => {
       providers: [
         { provide: CommandBus, useValue: commandBus },
         { provide: EventBus, useValue: eventBus },
+        { provide: QueryBus, useValue: queryBus },
+        ConnectionService,
       ],
     }).compile();
 
@@ -105,5 +113,26 @@ describe('AgentsController', () => {
       2,
       new SendMessageToAgentsEvent(message, agentId),
     );
+  });
+
+  describe('getMessages', () => {
+    const dto = { messageId: 1 };
+    const param = { agentId: 1 };
+
+    it('should call queryBus.execute', async () => {
+      await controller.getMessages(dto, param);
+      expect.assertions(2);
+      expect(queryBus.execute).toBeCalledTimes(1);
+      expect(queryBus.execute).toBeCalledWith(
+        new GetAgentMessagesQuery(dto, param),
+      );
+    });
+
+    it('should not call queryBus.execute', async () => {
+      dto.messageId = undefined;
+      await controller.getMessages(dto, param);
+      expect.assertions(1);
+      expect(queryBus.execute).not.toBeCalled();
+    });
   });
 });

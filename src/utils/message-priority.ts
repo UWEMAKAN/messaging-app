@@ -18,7 +18,7 @@ const highPriorityKeywords = [
 
 export const getMessagePriority = (message: string): number => {
   const isPriority = highPriorityKeywords.some((v: string) =>
-    message.includes(v),
+    message.toLowerCase().includes(v.toLowerCase()),
   );
   return isPriority ? MessagePriorities.HIGH : MessagePriorities.LOW;
 };
