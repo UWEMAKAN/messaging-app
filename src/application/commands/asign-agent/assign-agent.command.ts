@@ -22,7 +22,7 @@ export class AssignAgentCommandHandler
     private readonly agentsUsersRepository: Repository<AgentsUsers>,
   ) {}
 
-  async execute(command: AssignAgentCommand): Promise<any> {
+  async execute(command: AssignAgentCommand): Promise<void> {
     const { agentId, userId } = command;
     let agentUser: AgentsUsers = null;
 
