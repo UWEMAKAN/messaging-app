@@ -74,7 +74,7 @@ describe(UnassignAgentCommandHandler.name, () => {
   });
 
   it('should throw bad request error when trying to delete record', async () => {
-    const message = 'Record not deleted';
+    const message = 'Record not found';
     const agentId = 1;
     const userId = 1;
     agentsUsersRepository.delete = jest

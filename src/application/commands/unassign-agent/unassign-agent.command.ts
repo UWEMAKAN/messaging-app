@@ -35,8 +35,9 @@ export class UnassignAgentCommandHandler
     }
 
     if (!deleteResult.affected) {
-      throw new HttpException('Record not deleted', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Record not found', HttpStatus.BAD_REQUEST);
     }
-    return deleteResult;
+
+    return { deleted: true };
   }
 }
