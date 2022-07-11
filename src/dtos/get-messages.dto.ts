@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 import { MessageSenders, MessageTypes } from '../utils';
 
-export class GetUserMessagesDto {
+export class GetMessagesDto {
   /**
    * Id of the last message the user received.
    * if messageId >= 0 messages with id after messageId will be streamed to the user
@@ -83,4 +83,13 @@ export class UserParams {
    */
   @IsNumberString()
   public readonly userId: number;
+}
+
+export class AgentParams {
+  /**
+   * Id of the current agent.
+   * @example 1
+   */
+  @IsNumberString()
+  public readonly agentId: number;
 }
