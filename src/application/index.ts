@@ -11,6 +11,7 @@ import {
 } from './events';
 import {
   GetAgentMessagesQueryHandler,
+  GetUserDetailsQueryHandler,
   GetUserMessagesQueryHandler,
 } from './queries';
 
@@ -33,5 +34,6 @@ export const eventHandlers = [
 
 export const queryHandlers = [
   GetAgentMessagesQueryHandler,
+  GetUserDetailsQueryHandler,
   GetUserMessagesQueryHandler,
 ];
