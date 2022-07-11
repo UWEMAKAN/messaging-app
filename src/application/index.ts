@@ -3,6 +3,7 @@ import {
   CreateAgentCommandHandler,
   CreateMessageCommandHandler,
   CreateUserCommandHandler,
+  UnassignAgentCommandHandler,
 } from './commands';
 import {
   SendMessageToAgentsEventHandler,
@@ -18,10 +19,11 @@ export * from './events';
 export * from './queries';
 
 export const commandHandlers = [
-  CreateAgentCommandHandler,
-  CreateUserCommandHandler,
-  CreateMessageCommandHandler,
   AssignAgentCommandHandler,
+  CreateAgentCommandHandler,
+  CreateMessageCommandHandler,
+  CreateUserCommandHandler,
+  UnassignAgentCommandHandler,
 ];
 
 export const eventHandlers = [
@@ -30,6 +32,6 @@ export const eventHandlers = [
 ];
 
 export const queryHandlers = [
-  GetUserMessagesQueryHandler,
   GetAgentMessagesQueryHandler,
+  GetUserMessagesQueryHandler,
 ];

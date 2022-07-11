@@ -18,9 +18,11 @@ import {
   GetAgentMessagesQuery,
   SendMessageToAgentsEvent,
   SendMessageToUserEvent,
+  UnassignAgentCommand,
 } from '../../application';
 import {
   AgentParams,
+  CloseConversationDto,
   CreateAgentDto,
   CreateAgentMessageDto,
   CreateAgentResponse,
@@ -102,5 +104,16 @@ export class AgentsController {
         new GetAgentMessagesQuery(dto, agentParam),
       );
     }
+  }
+
+  /**
+   * Endpoint to close conversation with a user
+   * @param dto CloseConversationDto
+   */
+  @Post('/close-conversation')
+  @HttpCode(HttpStatus.OK)
+  async closeConversation(@Body() dto: CloseConversationDto): Promise<void> {
+    this.logger.log('closeConversation');
+    return await this.commandBus.execute(new UnassignAgentCommand(dto));
   }
 }
