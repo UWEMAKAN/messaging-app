@@ -69,14 +69,7 @@ describe(GetUserDetailsQueryHandler.name, () => {
     expect(userRepository.findOne).toBeCalledWith({
       where: { id: userId },
       relations: {
-        messages: {
-          id: true,
-          body: true,
-          type: true,
-          sender: true,
-          createdAt: true,
-          priority: true,
-        },
+        messages: true,
       },
       select: {
         id: true,
@@ -103,14 +96,7 @@ describe(GetUserDetailsQueryHandler.name, () => {
       expect(userRepository.findOne).toBeCalledWith({
         where: { id: userId },
         relations: {
-          messages: {
-            id: true,
-            body: true,
-            type: true,
-            sender: true,
-            createdAt: true,
-            priority: true,
-          },
+          messages: true,
         },
         select: {
           id: true,
@@ -139,14 +125,7 @@ describe(GetUserDetailsQueryHandler.name, () => {
       expect(userRepository.findOne).toBeCalledWith({
         where: { id: userId },
         relations: {
-          messages: {
-            id: true,
-            body: true,
-            type: true,
-            sender: true,
-            createdAt: true,
-            priority: true,
-          },
+          messages: true,
         },
         select: {
           id: true,

@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
 import { HttpErrorFilter, LoggingInterceptor, ValidationPipe } from './utils';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { entities } from './entities';
 import { services } from './services';
 import { commandHandlers, eventHandlers, queryHandlers } from './application';
@@ -37,7 +36,6 @@ import { controllers } from './controllers';
     ...eventHandlers,
     ...queryHandlers,
     ...services,
-    AppService,
     {
       provide: APP_FILTER,
       useClass: HttpErrorFilter,
