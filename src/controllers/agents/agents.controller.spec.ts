@@ -1,5 +1,6 @@
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Request, Response } from 'express';
 import {
   AssignAgentCommand,
   CreateAgentCommand,
@@ -29,6 +30,13 @@ describe('AgentsController', () => {
   const queryBus = {
     execute: jest.fn(),
   } as unknown as QueryBus;
+
+  const request = {
+    on: jest.fn(),
+  } as unknown as Request;
+  const response = {
+    setHeader: jest.fn(),
+  } as unknown as Response;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -107,7 +115,14 @@ describe('AgentsController', () => {
     expect(eventBus.publish).toBeCalledTimes(2);
     expect(eventBus.publish).toHaveBeenNthCalledWith(
       1,
-      new SendMessageToUserEvent(message),
+      new SendMessageToUserEvent({
+        id: message.id,
+        userId: message.userId,
+        body: message.body,
+        sender: message.sender,
+        type: message.type,
+        createdAt: message.createdAt,
+      }),
     );
     expect(eventBus.publish).toHaveBeenNthCalledWith(
       2,
@@ -120,8 +135,14 @@ describe('AgentsController', () => {
     const param = { agentId: 1 };
 
     it('should call queryBus.execute', async () => {
-      await controller.getMessages(dto, param);
-      expect.assertions(2);
+      await controller.getMessages(dto, param, request, response);
+      expect.assertions(5);
+      expect(request.on).toBeCalledTimes(1);
+      expect(response.setHeader).toBeCalledTimes(1);
+      expect(response.setHeader).toBeCalledWith(
+        'Content-Type',
+        'text/event-stream',
+      );
       expect(queryBus.execute).toBeCalledTimes(1);
       expect(queryBus.execute).toBeCalledWith(
         new GetAgentMessagesQuery(dto, param),
@@ -130,8 +151,14 @@ describe('AgentsController', () => {
 
     it('should not call queryBus.execute', async () => {
       dto.messageId = undefined;
-      await controller.getMessages(dto, param);
-      expect.assertions(1);
+      await controller.getMessages(dto, param, request, response);
+      expect.assertions(4);
+      expect(request.on).toBeCalledTimes(1);
+      expect(response.setHeader).toBeCalledTimes(1);
+      expect(response.setHeader).toBeCalledWith(
+        'Content-Type',
+        'text/event-stream',
+      );
       expect(queryBus.execute).not.toBeCalled();
     });
   });

@@ -8,9 +8,11 @@ import {
   Param,
   Post,
   Query,
-  UseInterceptors,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { Request, Response } from 'express';
 import {
   CreateMessageCommand,
   CreateUserCommand,
@@ -28,7 +30,8 @@ import {
   UserDetailsResponse,
   UserParams,
 } from '../../dtos';
-import { ConnectionInterceptor, MessageSenders } from '../../utils';
+import { ConnectionService } from '../../services';
+import { MessageSenders } from '../../utils';
 
 @Controller('users')
 export class UsersController {
@@ -38,6 +41,7 @@ export class UsersController {
     private readonly commandBus: CommandBus,
     private readonly eventBus: EventBus,
     private readonly queryBus: QueryBus,
+    private readonly connectionService: ConnectionService,
   ) {
     this.logger = new Logger(UsersController.name);
   }
@@ -81,11 +85,18 @@ export class UsersController {
    */
   @Get('/:userId/messages')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ConnectionInterceptor)
   async getMessages(
     @Query() dto: GetMessagesDto,
     @Param() userParam: UserParams,
+    @Req() req: Request,
+    @Res() res: Response,
   ): Promise<GetMessageResponse> {
+    req.on('close', () => {
+      this.connectionService.removeUserConnection(+userParam.userId);
+      this.logger.log(`User ${userParam.userId} disconnected`);
+    });
+    res.setHeader('Content-Type', 'text/event-stream');
+    this.connectionService.setUserConnection(+userParam.userId, res);
     if (dto.messageId !== undefined) {
       return await this.queryBus.execute(
         new GetUserMessagesQuery(dto, userParam),

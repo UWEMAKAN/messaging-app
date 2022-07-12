@@ -124,36 +124,6 @@ describe('Controllers (e2e)', () => {
       expect(typeof id).toBe('number');
       expect(priority).toBeUndefined();
     });
-
-    it('/users/:userId/messages (GET) 200 Ok', async () => {
-      const userBody = {
-        email: randomEmail(),
-        firstName: randomString(7),
-        lastName: randomString(5),
-        password: randomString(8),
-      };
-
-      const user = await request(app.getHttpServer())
-        .post('/users')
-        .send(userBody)
-        .expect(201);
-
-      const body = {
-        body: 'I want to take a loan',
-        userId: user.body.userId,
-        type: 'TEXT',
-      };
-
-      await request(app.getHttpServer())
-        .post('/users/messages')
-        .send(body)
-        .expect(200);
-
-      return await request(app.getHttpServer())
-        .get(`/users/${user.body.userId}/messages`)
-        .query({ messageId: 0 })
-        .expect(200);
-    });
   });
 
   describe('AgentsController', () => {
@@ -218,49 +188,6 @@ describe('Controllers (e2e)', () => {
       await request(app.getHttpServer())
         .post('/agents/messages')
         .send(body)
-        .expect(200);
-    });
-
-    it('/agents/:agentId/messages (GET) 200 Ok', async () => {
-      const agentBody = {
-        email: randomEmail(),
-        firstName: randomString(7),
-        lastName: randomString(5),
-        password: randomString(8),
-      };
-
-      const agent = await request(app.getHttpServer())
-        .post('/agents')
-        .send(agentBody)
-        .expect(201);
-
-      const userBody = {
-        email: randomEmail(),
-        firstName: randomString(7),
-        lastName: randomString(5),
-        password: randomString(8),
-      };
-
-      const user = await request(app.getHttpServer())
-        .post('/users')
-        .send(userBody)
-        .expect(201);
-
-      const body = {
-        body: 'How may I help you?',
-        userId: user.body.userId,
-        agentId: agent.body.agentId,
-        type: 'TEXT',
-      };
-
-      await request(app.getHttpServer())
-        .post('/agents/messages')
-        .send(body)
-        .expect(200);
-
-      return await request(app.getHttpServer())
-        .get(`/agents/${agent.body.agentId}/messages`)
-        .query({ messageId: 0 })
         .expect(200);
     });
 
