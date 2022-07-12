@@ -8,9 +8,11 @@ import {
   Param,
   Post,
   Query,
-  UseInterceptors,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { Request, Response } from 'express';
 import {
   AssignAgentCommand,
   CreateAgentCommand,
@@ -30,7 +32,8 @@ import {
   GetMessageResponse,
   GetMessagesDto,
 } from '../../dtos';
-import { ConnectionInterceptor, MessageSenders } from '../../utils';
+import { ConnectionService } from '../../services';
+import { MessageSenders } from '../../utils';
 
 @Controller('agents')
 export class AgentsController {
@@ -40,6 +43,7 @@ export class AgentsController {
     private readonly commandBus: CommandBus,
     private readonly eventBus: EventBus,
     private readonly queryBus: QueryBus,
+    private readonly connectionService: ConnectionService,
   ) {
     this.logger = new Logger(AgentsController.name);
   }
@@ -80,7 +84,16 @@ export class AgentsController {
         MessageSenders.AGENT,
       ),
     );
-    this.eventBus.publish(new SendMessageToUserEvent(message));
+    this.eventBus.publish(
+      new SendMessageToUserEvent({
+        id: message.id,
+        userId: message.userId,
+        body: message.body,
+        sender: message.sender,
+        type: message.type,
+        createdAt: message.createdAt,
+      }),
+    );
     this.eventBus.publish(new SendMessageToAgentsEvent(message, dto.agentId));
     return message;
   }
@@ -93,11 +106,18 @@ export class AgentsController {
    */
   @Get('/:agentId/messages')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ConnectionInterceptor)
   async getMessages(
     @Query() dto: GetMessagesDto,
     @Param() agentParam: AgentParams,
+    @Req() req: Request,
+    @Res() res: Response,
   ): Promise<GetMessageResponse> {
+    req.on('close', () => {
+      this.connectionService.removeAgentConnection(+agentParam.agentId);
+      this.logger.log(`Agent ${agentParam.agentId} disconnected`);
+    });
+    res.setHeader('Content-Type', 'text/event-stream');
+    this.connectionService.setAgentConnection(+agentParam.agentId, res);
     this.logger.log('getMessages');
     if (dto.messageId !== undefined) {
       return await this.queryBus.execute(
