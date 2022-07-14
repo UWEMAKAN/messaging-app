@@ -99,7 +99,7 @@ export class AgentsController {
   }
 
   /**
-   * Endpoint to stream messages to the agent
+   * Endpoint to fetch messages by the agent
    * @param dto GetMessagesDto
    * @param agentParam AgentParams
    * @returns GetMessageResponse
@@ -109,21 +109,32 @@ export class AgentsController {
   async getMessages(
     @Query() dto: GetMessagesDto,
     @Param() agentParam: AgentParams,
+  ): Promise<GetMessageResponse> {
+    this.logger.log('getMessages');
+    return await this.queryBus.execute(
+      new GetAgentMessagesQuery(dto, agentParam),
+    );
+  }
+
+  /**
+   * Endpoint for agents to subscribe to new messages
+   * @param agentParam AgentParams
+   * @returns GetMessageResponse
+   */
+  @Get('/:agentId/messages/subscribe')
+  @HttpCode(HttpStatus.OK)
+  subscribe(
+    @Param() agentParam: AgentParams,
     @Req() req: Request,
     @Res() res: Response,
-  ): Promise<GetMessageResponse> {
+  ) {
+    this.logger.log('subscribe');
     req.on('close', () => {
       this.connectionService.removeAgentConnection(+agentParam.agentId);
       this.logger.log(`Agent ${agentParam.agentId} disconnected`);
     });
     res.setHeader('Content-Type', 'text/event-stream');
     this.connectionService.setAgentConnection(+agentParam.agentId, res);
-    this.logger.log('getMessages');
-    if (dto.messageId !== undefined) {
-      return await this.queryBus.execute(
-        new GetAgentMessagesQuery(dto, agentParam),
-      );
-    }
   }
 
   /**

@@ -38,6 +38,10 @@ describe('AgentsController', () => {
     setHeader: jest.fn(),
   } as unknown as Response;
 
+  const connectionService = {
+    setAgentConnection: jest.fn(),
+  } as unknown as ConnectionService;
+
   beforeEach(async () => {
     module = await Test.createTestingModule({
       controllers: [AgentsController],
@@ -45,7 +49,7 @@ describe('AgentsController', () => {
         { provide: CommandBus, useValue: commandBus },
         { provide: EventBus, useValue: eventBus },
         { provide: QueryBus, useValue: queryBus },
-        ConnectionService,
+        { provide: ConnectionService, useValue: connectionService },
       ],
     }).compile();
 
@@ -135,7 +139,22 @@ describe('AgentsController', () => {
     const param = { agentId: 1 };
 
     it('should call queryBus.execute', async () => {
-      await controller.getMessages(dto, param, request, response);
+      await controller.getMessages(dto, param);
+      expect.assertions(2);
+      expect(queryBus.execute).toBeCalledTimes(1);
+      expect(queryBus.execute).toBeCalledWith(
+        new GetAgentMessagesQuery(dto, param),
+      );
+    });
+  });
+
+  describe('subscribe', () => {
+    const dto = { messageId: 1 };
+    const param = { agentId: 1 };
+
+    it('should subscribe to new messages', async () => {
+      dto.messageId = undefined;
+      controller.subscribe(param, request, response);
       expect.assertions(5);
       expect(request.on).toBeCalledTimes(1);
       expect(response.setHeader).toBeCalledTimes(1);
@@ -143,23 +162,11 @@ describe('AgentsController', () => {
         'Content-Type',
         'text/event-stream',
       );
-      expect(queryBus.execute).toBeCalledTimes(1);
-      expect(queryBus.execute).toBeCalledWith(
-        new GetAgentMessagesQuery(dto, param),
+      expect(connectionService.setAgentConnection).toBeCalledTimes(1);
+      expect(connectionService.setAgentConnection).toBeCalledWith(
+        param.agentId,
+        response,
       );
-    });
-
-    it('should not call queryBus.execute', async () => {
-      dto.messageId = undefined;
-      await controller.getMessages(dto, param, request, response);
-      expect.assertions(4);
-      expect(request.on).toBeCalledTimes(1);
-      expect(response.setHeader).toBeCalledTimes(1);
-      expect(response.setHeader).toBeCalledWith(
-        'Content-Type',
-        'text/event-stream',
-      );
-      expect(queryBus.execute).not.toBeCalled();
     });
   });
 });
