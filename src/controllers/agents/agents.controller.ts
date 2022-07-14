@@ -123,7 +123,7 @@ export class AgentsController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    this.logger.log('subscribe');
+    this.logger.log('subscribe agent');
     req.on('close', () => {
       this.connectionService.removeAgentConnection(+agentParam.agentId);
       this.logger.log(`Agent ${agentParam.agentId} disconnected`);

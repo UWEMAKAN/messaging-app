@@ -85,13 +85,14 @@ export class UsersController {
    * @param userParam UserParams
    * @returns GetMessageResponse
    */
-  @Get('/:userId/messages/subscribe')
+  @Get('/:userId/subscribe')
   @HttpCode(HttpStatus.OK)
-  subscribe(
-    @Param('userId') userParam: UserParams,
+  async subscribe(
+    @Param() userParam: UserParams,
     @Req() req: Request,
     @Res() res: Response,
   ) {
+    this.logger.log('subscribe user');
     req.on('close', () => {
       this.connectionService.removeUserConnection(+userParam.userId);
       this.logger.log(`User ${userParam.userId} disconnected`);
