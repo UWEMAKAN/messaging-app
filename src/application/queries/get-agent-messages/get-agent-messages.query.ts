@@ -38,25 +38,28 @@ export class GetAgentMessagesQueryHandler
 
     try {
       const subQuery = this.messageRepository
-        .createQueryBuilder()
-        .select(`MAX("id")`)
-        .groupBy('"userId"')
+        .createQueryBuilder('n')
+        .select(`MAX(n."id")`)
+        .groupBy('n."userId"')
         .getQuery();
       readStream = await this.messageRepository
-        .createQueryBuilder()
+        .createQueryBuilder('m')
         .select([
-          '"id"',
-          '"userId"',
-          '"type"',
-          '"body"',
-          '"sender"',
-          '"priority"',
-          '"createdAt"',
+          'm."id"',
+          'm."userId"',
+          'm."type"',
+          'm."body"',
+          'm."sender"',
+          'm."priority"',
+          'm."createdAt"',
+          'u."firstName"',
+          'u."lastName"',
         ])
-        .where('"id" > :messageId', { messageId })
-        .andWhere(`"id" IN (${subQuery})`)
-        .orderBy('"priority"', 'ASC')
-        .addOrderBy('"createdAt"', 'DESC')
+        .where('m."id" > :messageId', { messageId })
+        .andWhere(`m."id" IN (${subQuery})`)
+        .orderBy('m."priority"', 'ASC')
+        .addOrderBy('m."createdAt"', 'DESC')
+        .leftJoin('m.user', 'u')
         .limit(50)
         .stream();
     } catch (err) {

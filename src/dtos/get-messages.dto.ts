@@ -74,6 +74,22 @@ export class GetMessageResponse {
   @IsInt()
   @Min(1)
   priority?: number;
+
+  /**
+   * First name of the user
+   * @example Bender
+   */
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  /**
+   * Last name of the user
+   * @example Rodriguez
+   */
+  @IsString()
+  @IsOptional()
+  lastName?: string;
 }
 
 export class UserParams {

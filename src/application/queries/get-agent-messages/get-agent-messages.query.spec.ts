@@ -66,7 +66,8 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     const getQuery = jest.fn().mockReturnValue('query');
     const groupBy = jest.fn().mockReturnValue({ getQuery });
     const limit = jest.fn().mockReturnValue({ stream });
-    const addOrderBy = jest.fn().mockReturnValue({ limit });
+    const leftJoin = jest.fn().mockReturnValue({ limit });
+    const addOrderBy = jest.fn().mockReturnValue({ leftJoin });
     const orderBy = jest.fn().mockReturnValue({ addOrderBy });
     const andWhere = jest.fn().mockReturnValue({ orderBy });
     const where = jest.fn().mockReturnValue({ andWhere });
@@ -78,7 +79,7 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     const param = { agentId: 1 };
     const query = new GetAgentMessagesQuery(dto, param);
     await handler.execute(query);
-    expect.assertions(11);
+    expect.assertions(12);
     expect(createQueryBuilder).toBeCalledTimes(2);
     expect(select).toBeCalledTimes(2);
     expect(groupBy).toBeCalledTimes(1);
@@ -87,6 +88,7 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     expect(andWhere).toBeCalledTimes(1);
     expect(orderBy).toBeCalledTimes(1);
     expect(addOrderBy).toBeCalledTimes(1);
+    expect(leftJoin).toBeCalledTimes(1);
     expect(limit).toBeCalledTimes(1);
     expect(stream).toBeCalledTimes(1);
     expect(readStream.pipe).toBeCalledTimes(1);
@@ -98,7 +100,8 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     const getQuery = jest.fn().mockReturnValue('query');
     const groupBy = jest.fn().mockReturnValue({ getQuery });
     const limit = jest.fn().mockReturnValue({ stream });
-    const addOrderBy = jest.fn().mockReturnValue({ limit });
+    const leftJoin = jest.fn().mockReturnValue({ limit });
+    const addOrderBy = jest.fn().mockReturnValue({ leftJoin });
     const orderBy = jest.fn().mockReturnValue({ addOrderBy });
     const andWhere = jest.fn().mockReturnValue({ orderBy });
     const where = jest.fn().mockReturnValue({ andWhere });
@@ -112,7 +115,7 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     try {
       await handler.execute(query);
     } catch (err) {
-      expect.assertions(11);
+      expect.assertions(12);
       expect(createQueryBuilder).toBeCalledTimes(2);
       expect(select).toBeCalledTimes(2);
       expect(groupBy).toBeCalledTimes(1);
@@ -121,6 +124,7 @@ describe(GetAgentMessagesQueryHandler.name, () => {
       expect(andWhere).toBeCalledTimes(1);
       expect(orderBy).toBeCalledTimes(1);
       expect(addOrderBy).toBeCalledTimes(1);
+      expect(leftJoin).toBeCalledTimes(1);
       expect(limit).toBeCalledTimes(1);
       expect(stream).toBeCalledTimes(1);
       expect(err).toStrictEqual(
