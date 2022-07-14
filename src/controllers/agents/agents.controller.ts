@@ -104,16 +104,11 @@ export class AgentsController {
    * @param agentParam AgentParams
    * @returns GetMessageResponse
    */
-  @Get('/:agentId/messages')
+  @Get('/messages')
   @HttpCode(HttpStatus.OK)
-  async getMessages(
-    @Query() dto: GetMessagesDto,
-    @Param() agentParam: AgentParams,
-  ): Promise<GetMessageResponse> {
+  async getMessages(@Query() dto: GetMessagesDto): Promise<GetMessageResponse> {
     this.logger.log('getMessages');
-    return await this.queryBus.execute(
-      new GetAgentMessagesQuery(dto, agentParam),
-    );
+    return await this.queryBus.execute(new GetAgentMessagesQuery(dto));
   }
 
   /**
@@ -121,7 +116,7 @@ export class AgentsController {
    * @param agentParam AgentParams
    * @returns GetMessageResponse
    */
-  @Get('/:agentId/messages/subscribe')
+  @Get('/:agentId/subscribe')
   @HttpCode(HttpStatus.OK)
   subscribe(
     @Param() agentParam: AgentParams,

@@ -21,3 +21,12 @@ export enum Duration {
   THREE_MONTHS = 90,
   ONE_YEAR = 365,
 }
+
+export enum DurationStrings {
+  ONE_DAY = 'ONE_DAY',
+  TWO_DAYS = 'TWO_DAYS',
+  ONE_WEEK = 'ONE_WEEK',
+  ONE_MONTH = 'ONE_MONTH',
+  THREE_MONTHS = 'THREE_MONTHS',
+  ONE_YEAR = 'ONE_YEAR',
+}

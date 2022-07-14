@@ -135,16 +135,12 @@ describe('AgentsController', () => {
   });
 
   describe('getMessages', () => {
-    const dto = { messageId: 1 };
-    const param = { agentId: 1 };
-
+    const dto = { duration: 'ONE_DAY' };
     it('should call queryBus.execute', async () => {
-      await controller.getMessages(dto, param);
+      await controller.getMessages(dto);
       expect.assertions(2);
       expect(queryBus.execute).toBeCalledTimes(1);
-      expect(queryBus.execute).toBeCalledWith(
-        new GetAgentMessagesQuery(dto, param),
-      );
+      expect(queryBus.execute).toBeCalledWith(new GetAgentMessagesQuery(dto));
     });
   });
 
