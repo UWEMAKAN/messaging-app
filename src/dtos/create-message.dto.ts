@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsIn,
   IsDateString,
+  IsOptional,
 } from 'class-validator';
 import { MessageSenders, MessageTypes } from '../utils';
 
@@ -118,5 +119,22 @@ export class CreateMessageResponse {
    */
   @IsInt()
   @Min(1)
+  @IsOptional()
   priority?: number;
+
+  /**
+   * First name of the user
+   * @example Bender
+   */
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  /**
+   * Last name of the user
+   * @example Rodriguez
+   */
+  @IsString()
+  @IsOptional()
+  lastName?: string;
 }

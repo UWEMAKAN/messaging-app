@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { GetMessageResponse } from '../../../dtos';
 import { Message } from '../../../entities';
 
 export class GetUserMessagesQuery implements IQuery {
@@ -21,7 +22,7 @@ export class GetUserMessagesQueryHandler
     this.logger = new Logger(GetUserMessagesQueryHandler.name);
   }
 
-  async execute(query: GetUserMessagesQuery): Promise<Message[]> {
+  async execute(query: GetUserMessagesQuery): Promise<GetMessageResponse[]> {
     const { userId } = query;
     try {
       return await this.messageRepository
@@ -36,7 +37,7 @@ export class GetUserMessagesQueryHandler
           '"body"',
           '"sender"',
         ])
-        .getMany();
+        .getRawMany();
     } catch (err) {
       this.logger.log(JSON.stringify(err));
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);

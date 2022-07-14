@@ -15,12 +15,17 @@ const messageDto = {
   type: 'TEXT',
 } as CreateMessageDto;
 
+const firstName = 'Bender';
+const lastName = 'Rodriguez';
+
 const response = {
   ...messageDto,
   createdAt: new Date().toISOString(),
   priority: 1,
   id: 2,
   sender: MessageSenders.USER,
+  firstName,
+  lastName,
 };
 
 describe(CreateMessageCommandHandler.name, () => {
@@ -28,7 +33,7 @@ describe(CreateMessageCommandHandler.name, () => {
   let module: TestingModule;
 
   const userRepository = {
-    findOne: jest.fn().mockResolvedValue({ id: 1 }),
+    findOne: jest.fn().mockResolvedValue({ id: 1, firstName, lastName }),
   };
   const messageRepository = {
     save: jest.fn().mockResolvedValue(response),
@@ -64,7 +69,7 @@ describe(CreateMessageCommandHandler.name, () => {
     expect(userRepository.findOne).toBeCalledTimes(1);
     expect(userRepository.findOne).toBeCalledWith({
       where: { id: messageDto.userId },
-      select: ['id'],
+      select: ['id', 'firstName', 'lastName'],
     });
     expect(messageRepository.save).toBeCalledTimes(1);
     expect(messageRepository.save).toBeCalledWith({

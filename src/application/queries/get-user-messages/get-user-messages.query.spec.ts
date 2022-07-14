@@ -58,8 +58,8 @@ describe(GetUserMessagesQueryHandler.name, () => {
       type: 'TEXT',
       sender: MessageSenders.USER,
     };
-    const getMany = jest.fn().mockResolvedValue([message]);
-    const select = jest.fn().mockReturnValue({ getMany });
+    const getRawMany = jest.fn().mockResolvedValue([message]);
+    const select = jest.fn().mockReturnValue({ getRawMany });
     const orderBy = jest.fn().mockReturnValue({ select });
     const where = jest.fn().mockReturnValue({ orderBy });
     const createQueryBuilder = jest.fn().mockReturnValue({ where });
@@ -74,13 +74,13 @@ describe(GetUserMessagesQueryHandler.name, () => {
     expect(where).toBeCalledTimes(1);
     expect(orderBy).toBeCalledTimes(1);
     expect(select).toBeCalledTimes(1);
-    expect(getMany).toBeCalledTimes(1);
+    expect(getRawMany).toBeCalledTimes(1);
   });
 
   it('should throw an internal server error', async () => {
     const message = 'Database error';
-    const getMany = jest.fn().mockRejectedValue(new Error(message));
-    const select = jest.fn().mockReturnValue({ getMany });
+    const getRawMany = jest.fn().mockRejectedValue(new Error(message));
+    const select = jest.fn().mockReturnValue({ getRawMany });
     const orderBy = jest.fn().mockReturnValue({ select });
     const where = jest.fn().mockReturnValue({ orderBy });
     const createQueryBuilder = jest.fn().mockReturnValue({ where });
@@ -96,7 +96,7 @@ describe(GetUserMessagesQueryHandler.name, () => {
       expect(where).toBeCalledTimes(1);
       expect(orderBy).toBeCalledTimes(1);
       expect(select).toBeCalledTimes(1);
-      expect(getMany).toBeCalledTimes(1);
+      expect(getRawMany).toBeCalledTimes(1);
       expect(err).toStrictEqual(
         new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
       );

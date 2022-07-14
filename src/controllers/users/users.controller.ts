@@ -70,8 +70,14 @@ export class UsersController {
       new CreateMessageCommand(dto, MessageSenders.USER),
     );
     this.eventBus.publish(new SendMessageToAgentsEvent(message));
-    delete message.priority;
-    return message;
+    return {
+      id: message.id,
+      userId: message.userId,
+      body: message.body,
+      sender: message.sender,
+      type: message.type,
+      createdAt: message.createdAt,
+    };
   }
 
   /**

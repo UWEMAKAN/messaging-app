@@ -93,6 +93,7 @@ describe(UsersController.name, () => {
         ...messageDto,
         createdAt: new Date().toISOString(),
         id: 1,
+        sender: 'USER',
       };
       commandBus.execute = jest.fn().mockResolvedValue(response);
       const message = await controller.sendMessage(messageDto);
