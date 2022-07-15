@@ -22,7 +22,7 @@ export class AssignAgentCommandHandler
     private readonly agentsUsersRepository: Repository<AgentsUsers>,
   ) {}
 
-  async execute(command: AssignAgentCommand): Promise<void> {
+  async execute(command: AssignAgentCommand): Promise<any> {
     const { agentId, userId } = command;
     let agentUser: AgentsUsers = null;
 
@@ -39,6 +39,7 @@ export class AssignAgentCommandHandler
     if (!agentUser) {
       try {
         await this.agentsUsersRepository.insert({ agentId, userId });
+        return true;
       } catch (err) {
         this.logger.log(JSON.stringify(err));
         throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
