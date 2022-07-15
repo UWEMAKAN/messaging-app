@@ -36,7 +36,7 @@ export class CreateMessageCommandHandler
     try {
       user = await this.userRepository.findOne({
         where: { id: command.data.userId },
-        select: ['id'],
+        select: ['id', 'firstName', 'lastName'],
       });
     } catch (err) {
       this.logger.log(JSON.stringify(err));
@@ -72,6 +72,8 @@ export class CreateMessageCommandHandler
       createdAt: createdAt.toString(),
       priority,
       sender,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
   }
 }

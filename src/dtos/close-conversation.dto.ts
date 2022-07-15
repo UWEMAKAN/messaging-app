@@ -20,9 +20,9 @@ export class CloseConversationDto {
 
 export class CloseConversationResponse {
   /**
-   * conversation deletion status
+   * conversation close status
    * @example true
    */
   @IsBoolean()
-  public readonly deleted: boolean;
+  public readonly closed: boolean;
 }

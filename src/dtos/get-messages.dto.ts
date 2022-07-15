@@ -7,18 +7,15 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { MessageSenders, MessageTypes } from '../utils';
+import { DurationStrings, MessageSenders, MessageTypes } from '../utils';
 
 export class GetMessagesDto {
   /**
-   * Id of the last message the user received.
-   * if messageId >= 0 messages with id after messageId will be streamed to the user
-   * else the user will simply be subscribed to the event stream;
-   * @example 1
+   * Duration for which to fetch message
+   * @example ONE_DAY
    */
-  @IsOptional()
-  @IsNumberString()
-  public readonly messageId: number;
+  @IsIn(Object.values(DurationStrings))
+  public readonly duration: string;
 }
 
 export class GetMessageResponse {
@@ -74,6 +71,22 @@ export class GetMessageResponse {
   @IsInt()
   @Min(1)
   priority?: number;
+
+  /**
+   * First name of the user
+   * @example Bender
+   */
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  /**
+   * Last name of the user
+   * @example Rodriguez
+   */
+  @IsString()
+  @IsOptional()
+  lastName?: string;
 }
 
 export class UserParams {

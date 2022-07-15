@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
-import { CloseConversationDto } from '../../../dtos';
+import { CloseConversationDto, CloseConversationResponse } from '../../../dtos';
 import { AgentsUsers } from '../../../entities';
 
 export class UnassignAgentCommand implements ICommand {
@@ -20,7 +20,9 @@ export class UnassignAgentCommandHandler
     private readonly agentsUsersRepository: Repository<AgentsUsers>,
   ) {}
 
-  async execute(command: UnassignAgentCommand): Promise<any> {
+  async execute(
+    command: UnassignAgentCommand,
+  ): Promise<CloseConversationResponse> {
     const { agentId, userId } = command.data;
     let deleteResult: DeleteResult = null;
 
@@ -38,6 +40,6 @@ export class UnassignAgentCommandHandler
       throw new HttpException('Record not found', HttpStatus.BAD_REQUEST);
     }
 
-    return { deleted: true };
+    return { closed: true };
   }
 }

@@ -33,6 +33,10 @@ describe(UsersController.name, () => {
     setHeader: jest.fn(),
   } as unknown as Response;
 
+  const connectionService = {
+    setUserConnection: jest.fn(),
+  } as unknown as ConnectionService;
+
   beforeEach(async () => {
     module = await Test.createTestingModule({
       controllers: [UsersController],
@@ -40,7 +44,7 @@ describe(UsersController.name, () => {
         { provide: CommandBus, useValue: commandBus },
         { provide: EventBus, useValue: eventBus },
         { provide: QueryBus, useValue: queryBus },
-        ConnectionService,
+        { provide: ConnectionService, useValue: connectionService },
       ],
     }).compile();
 
@@ -89,6 +93,7 @@ describe(UsersController.name, () => {
         ...messageDto,
         createdAt: new Date().toISOString(),
         id: 1,
+        sender: 'USER',
       };
       commandBus.execute = jest.fn().mockResolvedValue(response);
       const message = await controller.sendMessage(messageDto);
@@ -106,11 +111,22 @@ describe(UsersController.name, () => {
   });
 
   describe('getMessages', () => {
-    const dto = { messageId: 1 };
     const param = { userId: 1 };
 
     it('should call queryBus.execute', async () => {
-      await controller.getMessages(dto, param, request, response);
+      await controller.getMessages(param);
+      expect.assertions(2);
+      expect(queryBus.execute).toBeCalledTimes(1);
+      expect(queryBus.execute).toBeCalledWith(
+        new GetUserMessagesQuery(param.userId),
+      );
+    });
+  });
+
+  describe('subscribe', () => {
+    const param = { userId: 1 };
+    it('should subscribe user to messages', async () => {
+      controller.subscribe(param, request, response);
       expect.assertions(5);
       expect(request.on).toBeCalledTimes(1);
       expect(response.setHeader).toBeCalledTimes(1);
@@ -118,23 +134,11 @@ describe(UsersController.name, () => {
         'Content-Type',
         'text/event-stream',
       );
-      expect(queryBus.execute).toBeCalledTimes(1);
-      expect(queryBus.execute).toBeCalledWith(
-        new GetUserMessagesQuery(dto, param),
+      expect(connectionService.setUserConnection).toBeCalledTimes(1);
+      expect(connectionService.setUserConnection).toBeCalledWith(
+        param.userId,
+        response,
       );
-    });
-
-    it('should not call queryBus.execute', async () => {
-      dto.messageId = undefined;
-      await controller.getMessages(dto, param, request, response);
-      expect.assertions(4);
-      expect(request.on).toBeCalledTimes(1);
-      expect(response.setHeader).toBeCalledTimes(1);
-      expect(response.setHeader).toBeCalledWith(
-        'Content-Type',
-        'text/event-stream',
-      );
-      expect(queryBus.execute).not.toBeCalled();
     });
   });
 

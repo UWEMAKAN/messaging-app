@@ -7,7 +7,6 @@ import {
   Logger,
   Param,
   Post,
-  Query,
   Req,
   Res,
 } from '@nestjs/common';
@@ -25,8 +24,6 @@ import {
   CreateMessageResponse,
   CreateUserDto,
   CreateUserResponse,
-  GetMessageResponse,
-  GetMessagesDto,
   UserDetailsResponse,
   UserParams,
 } from '../../dtos';
@@ -73,35 +70,43 @@ export class UsersController {
       new CreateMessageCommand(dto, MessageSenders.USER),
     );
     this.eventBus.publish(new SendMessageToAgentsEvent(message));
-    delete message.priority;
-    return message;
+    return {
+      id: message.id,
+      userId: message.userId,
+      body: message.body,
+      sender: message.sender,
+      type: message.type,
+      createdAt: message.createdAt,
+    };
   }
 
   /**
-   * Endpoint to stream messages to the user
-   * @param dto GetMessagesDto
+   * Endpoint for user to subscribe to new messages
    * @param userParam UserParams
    * @returns GetMessageResponse
    */
-  @Get('/:userId/messages')
+  @Get('/:userId/subscribe')
   @HttpCode(HttpStatus.OK)
-  async getMessages(
-    @Query() dto: GetMessagesDto,
+  async subscribe(
     @Param() userParam: UserParams,
     @Req() req: Request,
     @Res() res: Response,
-  ): Promise<GetMessageResponse> {
+  ) {
+    this.logger.log('subscribe user');
     req.on('close', () => {
       this.connectionService.removeUserConnection(+userParam.userId);
       this.logger.log(`User ${userParam.userId} disconnected`);
     });
     res.setHeader('Content-Type', 'text/event-stream');
     this.connectionService.setUserConnection(+userParam.userId, res);
-    if (dto.messageId !== undefined) {
-      return await this.queryBus.execute(
-        new GetUserMessagesQuery(dto, userParam),
-      );
-    }
+  }
+
+  @Get('/:userId/messages')
+  @HttpCode(HttpStatus.OK)
+  async getMessages(@Param() userParam: UserParams) {
+    return await this.queryBus.execute(
+      new GetUserMessagesQuery(+userParam.userId),
+    );
   }
 
   /**

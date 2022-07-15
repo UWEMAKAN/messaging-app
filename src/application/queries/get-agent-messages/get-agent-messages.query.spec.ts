@@ -62,11 +62,20 @@ describe(GetAgentMessagesQueryHandler.name, () => {
   });
 
   it('should fetch and return messages to the agent', async () => {
-    const stream = jest.fn().mockResolvedValue(readStream);
+    const message = {
+      id: 1,
+      userId: 1,
+      body: 'I want to take a loan',
+      createdAt,
+      type: 'TEXT',
+      sender: MessageSenders.AGENT,
+      priority: MessagePriorities.HIGH,
+    };
+    const getRawMany = jest.fn().mockResolvedValue([message]);
     const getQuery = jest.fn().mockReturnValue('query');
     const groupBy = jest.fn().mockReturnValue({ getQuery });
-    const limit = jest.fn().mockReturnValue({ stream });
-    const addOrderBy = jest.fn().mockReturnValue({ limit });
+    const leftJoin = jest.fn().mockReturnValue({ getRawMany });
+    const addOrderBy = jest.fn().mockReturnValue({ leftJoin });
     const orderBy = jest.fn().mockReturnValue({ addOrderBy });
     const andWhere = jest.fn().mockReturnValue({ orderBy });
     const where = jest.fn().mockReturnValue({ andWhere });
@@ -74,10 +83,9 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     const createQueryBuilder = jest.fn().mockReturnValue({ select });
     messageRepository.createQueryBuilder = createQueryBuilder;
 
-    const dto = { messageId: 1 };
-    const param = { agentId: 1 };
-    const query = new GetAgentMessagesQuery(dto, param);
-    await handler.execute(query);
+    const dto = { duration: 'ONE_DAY' };
+    const query = new GetAgentMessagesQuery(dto);
+    const response = await handler.execute(query);
     expect.assertions(11);
     expect(createQueryBuilder).toBeCalledTimes(2);
     expect(select).toBeCalledTimes(2);
@@ -87,18 +95,18 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     expect(andWhere).toBeCalledTimes(1);
     expect(orderBy).toBeCalledTimes(1);
     expect(addOrderBy).toBeCalledTimes(1);
-    expect(limit).toBeCalledTimes(1);
-    expect(stream).toBeCalledTimes(1);
-    expect(readStream.pipe).toBeCalledTimes(1);
+    expect(leftJoin).toBeCalledTimes(1);
+    expect(getRawMany).toBeCalledTimes(1);
+    expect(response[0]).toStrictEqual(message);
   });
 
   it('should fetch and return messages to the agent', async () => {
     const message = 'Database error';
-    const stream = jest.fn().mockRejectedValue(new Error(message));
+    const getRawMany = jest.fn().mockResolvedValue(new Error(message));
     const getQuery = jest.fn().mockReturnValue('query');
     const groupBy = jest.fn().mockReturnValue({ getQuery });
-    const limit = jest.fn().mockReturnValue({ stream });
-    const addOrderBy = jest.fn().mockReturnValue({ limit });
+    const leftJoin = jest.fn().mockReturnValue({ getRawMany });
+    const addOrderBy = jest.fn().mockReturnValue({ leftJoin });
     const orderBy = jest.fn().mockReturnValue({ addOrderBy });
     const andWhere = jest.fn().mockReturnValue({ orderBy });
     const where = jest.fn().mockReturnValue({ andWhere });
@@ -106,9 +114,8 @@ describe(GetAgentMessagesQueryHandler.name, () => {
     const createQueryBuilder = jest.fn().mockReturnValue({ select });
     messageRepository.createQueryBuilder = createQueryBuilder;
 
-    const dto = { messageId: 1 };
-    const param = { agentId: 1 };
-    const query = new GetAgentMessagesQuery(dto, param);
+    const dto = { duration: 'ONE_DAY' };
+    const query = new GetAgentMessagesQuery(dto);
     try {
       await handler.execute(query);
     } catch (err) {
@@ -121,8 +128,8 @@ describe(GetAgentMessagesQueryHandler.name, () => {
       expect(andWhere).toBeCalledTimes(1);
       expect(orderBy).toBeCalledTimes(1);
       expect(addOrderBy).toBeCalledTimes(1);
-      expect(limit).toBeCalledTimes(1);
-      expect(stream).toBeCalledTimes(1);
+      expect(leftJoin).toBeCalledTimes(1);
+      expect(getRawMany).toBeCalledTimes(1);
       expect(err).toStrictEqual(
         new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
       );

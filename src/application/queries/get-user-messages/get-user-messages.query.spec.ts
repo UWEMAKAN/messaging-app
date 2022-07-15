@@ -2,7 +2,6 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Response } from 'express';
-import { Readable } from 'stream';
 import { Message } from '../../../entities';
 import { ConnectionService } from '../../../services';
 import { MessageSenders } from '../../../utils';
@@ -16,18 +15,6 @@ describe(GetUserMessagesQueryHandler.name, () => {
   let module: TestingModule;
 
   const createdAt = new Date().toISOString();
-
-  const readStream = new Readable({
-    read: () => ({
-      id: 1,
-      userId: 1,
-      body: 'I want to take a loan',
-      createdAt,
-      type: 'TEXT',
-      sender: MessageSenders.USER,
-    }),
-  });
-  jest.spyOn(readStream, 'pipe');
 
   const messageRepository = {
     createQueryBuilder: jest.fn(),
@@ -63,51 +50,53 @@ describe(GetUserMessagesQueryHandler.name, () => {
   });
 
   it('should fetch and return messages to the user', async () => {
-    const stream = jest.fn().mockResolvedValue(readStream);
-    const select = jest.fn().mockReturnValue({ stream });
+    const message = {
+      id: 1,
+      userId: 1,
+      body: 'I want to take a loan',
+      createdAt,
+      type: 'TEXT',
+      sender: MessageSenders.USER,
+    };
+    const getRawMany = jest.fn().mockResolvedValue([message]);
+    const select = jest.fn().mockReturnValue({ getRawMany });
     const orderBy = jest.fn().mockReturnValue({ select });
-    const andWhere = jest.fn().mockReturnValue({ orderBy });
-    const where = jest.fn().mockReturnValue({ andWhere });
+    const where = jest.fn().mockReturnValue({ orderBy });
     const createQueryBuilder = jest.fn().mockReturnValue({ where });
     messageRepository.createQueryBuilder = createQueryBuilder;
 
-    const dto = { messageId: 1 };
     const param = { userId: 1 };
-    const query = new GetUserMessagesQuery(dto, param);
-    await handler.execute(query);
-    expect.assertions(7);
+    const query = new GetUserMessagesQuery(param.userId);
+    const response = await handler.execute(query);
+    expect.assertions(6);
+    expect(response[0]).toStrictEqual(message);
     expect(createQueryBuilder).toBeCalledTimes(1);
     expect(where).toBeCalledTimes(1);
-    expect(andWhere).toBeCalledTimes(1);
     expect(orderBy).toBeCalledTimes(1);
     expect(select).toBeCalledTimes(1);
-    expect(stream).toBeCalledTimes(1);
-    expect(readStream.pipe).toBeCalledTimes(1);
+    expect(getRawMany).toBeCalledTimes(1);
   });
 
   it('should throw an internal server error', async () => {
     const message = 'Database error';
-    const stream = jest.fn().mockRejectedValue(new Error(message));
-    const select = jest.fn().mockReturnValue({ stream });
+    const getRawMany = jest.fn().mockRejectedValue(new Error(message));
+    const select = jest.fn().mockReturnValue({ getRawMany });
     const orderBy = jest.fn().mockReturnValue({ select });
-    const andWhere = jest.fn().mockReturnValue({ orderBy });
-    const where = jest.fn().mockReturnValue({ andWhere });
+    const where = jest.fn().mockReturnValue({ orderBy });
     const createQueryBuilder = jest.fn().mockReturnValue({ where });
     messageRepository.createQueryBuilder = createQueryBuilder;
 
-    const dto = { messageId: 1 };
     const param = { userId: 1 };
-    const query = new GetUserMessagesQuery(dto, param);
+    const query = new GetUserMessagesQuery(param.userId);
     try {
       await handler.execute(query);
     } catch (err) {
-      expect.assertions(7);
+      expect.assertions(6);
       expect(createQueryBuilder).toBeCalledTimes(1);
       expect(where).toBeCalledTimes(1);
-      expect(andWhere).toBeCalledTimes(1);
       expect(orderBy).toBeCalledTimes(1);
       expect(select).toBeCalledTimes(1);
-      expect(stream).toBeCalledTimes(1);
+      expect(getRawMany).toBeCalledTimes(1);
       expect(err).toStrictEqual(
         new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
       );
