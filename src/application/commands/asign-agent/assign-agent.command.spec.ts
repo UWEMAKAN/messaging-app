@@ -1,7 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { EventBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AgentsUsers } from '../../../entities';
+import { AgentAssignmentEvent } from '../../events';
 import {
   AssignAgentCommand,
   AssignAgentCommandHandler,
@@ -15,6 +17,9 @@ describe(AssignAgentCommandHandler.name, () => {
     findOne: jest.fn(),
     insert: jest.fn(),
   };
+  const eventBus = {
+    publish: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -24,6 +29,7 @@ describe(AssignAgentCommandHandler.name, () => {
           provide: getRepositoryToken(AgentsUsers),
           useValue: agentsUsersRepository,
         },
+        { provide: EventBus, useValue: eventBus },
       ],
     }).compile();
     handler = module.get<AssignAgentCommandHandler>(AssignAgentCommandHandler);
@@ -44,7 +50,7 @@ describe(AssignAgentCommandHandler.name, () => {
     agentsUsersRepository.findOne = jest.fn().mockResolvedValue(null);
     const command = new AssignAgentCommand(agentId, userId);
     await handler.execute(command);
-    expect.assertions(4);
+    expect.assertions(6);
     expect(agentsUsersRepository.findOne).toBeCalledTimes(1);
     expect(agentsUsersRepository.findOne).toBeCalledWith({
       where: { userId },
@@ -52,6 +58,10 @@ describe(AssignAgentCommandHandler.name, () => {
     });
     expect(agentsUsersRepository.insert).toBeCalledTimes(1);
     expect(agentsUsersRepository.insert).toBeCalledWith({ agentId, userId });
+    expect(eventBus.publish).toBeCalledTimes(1);
+    expect(eventBus.publish).toBeCalledWith(
+      new AgentAssignmentEvent(agentId, true, userId),
+    );
   });
 
   it('should throw a database error when finding agents_users record', async () => {
