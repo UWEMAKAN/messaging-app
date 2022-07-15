@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { LoginDto } from '../../dtos';
-import { Agent, User } from '../../entities';
+import { Agent, AgentsUsers, User } from '../../entities';
 import { AuthController } from './auth.controller';
 
 const loginDto = {
@@ -20,6 +20,9 @@ describe('AuthController', () => {
   const userRepository = {
     findOne: jest.fn().mockResolvedValue({ id: 1 }),
   };
+  const agentsUsersRepository = {
+    delete: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -27,6 +30,10 @@ describe('AuthController', () => {
       providers: [
         { provide: getRepositoryToken(Agent), useValue: agentRepository },
         { provide: getRepositoryToken(User), useValue: userRepository },
+        {
+          provide: getRepositoryToken(AgentsUsers),
+          useValue: agentsUsersRepository,
+        },
       ],
     }).compile();
 
@@ -138,6 +145,32 @@ describe('AuthController', () => {
       expect(controller.agentLogin).toThrowError(new Error(message));
     } catch (err) {
       expect.assertions(1);
+      expect(err).toStrictEqual(
+        new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
+      );
+    }
+  });
+
+  test('should call delete on assigned tickets', async () => {
+    const logoutDto = { agentId: 1 };
+    await controller.logoutAgent(logoutDto);
+    expect.assertions(2);
+    expect(agentsUsersRepository.delete).toBeCalledTimes(1);
+    expect(agentsUsersRepository.delete).toBeCalledWith({ agentId: 1 });
+  });
+
+  test('should throw database error when finding agent', async () => {
+    const logoutDto = { agentId: 1 };
+    const message = 'database error';
+    agentsUsersRepository.delete = jest
+      .fn()
+      .mockRejectedValue(new Error(message));
+    try {
+      await controller.logoutAgent(logoutDto);
+    } catch (err) {
+      expect.assertions(3);
+      expect(agentsUsersRepository.delete).toBeCalledTimes(1);
+      expect(agentsUsersRepository.delete).toBeCalledWith({ agentId: 1 });
       expect(err).toStrictEqual(
         new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
       );

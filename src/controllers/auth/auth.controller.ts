@@ -10,8 +10,13 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppController } from '../../app.controller';
-import { AgentLoginResponse, LoginDto, UserLoginResponse } from '../../dtos';
-import { User, Agent } from '../../entities';
+import {
+  AgentLoginResponse,
+  LoginDto,
+  LogoutDto,
+  UserLoginResponse,
+} from '../../dtos';
+import { User, Agent, AgentsUsers } from '../../entities';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +27,8 @@ export class AuthController {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(AgentsUsers)
+    private readonly agentsUsersRepository: Repository<AgentsUsers>,
   ) {
     this.logger = new Logger(AppController.name);
   }
@@ -75,5 +82,21 @@ export class AuthController {
     }
 
     return { agentId: +agent.id };
+  }
+
+  /**
+   * Agent login endpoint
+   * @param dto LogoutDto
+   */
+  @Post('/logout/agents')
+  @HttpCode(HttpStatus.OK)
+  async logoutAgent(@Body() dto: LogoutDto) {
+    try {
+      await this.agentsUsersRepository.delete({
+        agentId: dto.agentId,
+      });
+    } catch (err) {
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
