@@ -7,16 +7,18 @@ import {
   Logger,
   Post,
 } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppController } from '../../app.controller';
+import { UnassignAllCommand } from '../../application';
 import {
   AgentLoginResponse,
   LoginDto,
   LogoutDto,
   UserLoginResponse,
 } from '../../dtos';
-import { User, Agent, AgentsUsers } from '../../entities';
+import { User, Agent } from '../../entities';
 
 @Controller('auth')
 export class AuthController {
@@ -27,8 +29,7 @@ export class AuthController {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
-    @InjectRepository(AgentsUsers)
-    private readonly agentsUsersRepository: Repository<AgentsUsers>,
+    private readonly commandBus: CommandBus,
   ) {
     this.logger = new Logger(AppController.name);
   }
@@ -91,12 +92,6 @@ export class AuthController {
   @Post('/logout/agents')
   @HttpCode(HttpStatus.OK)
   async logoutAgent(@Body() dto: LogoutDto) {
-    try {
-      await this.agentsUsersRepository.delete({
-        agentId: dto.agentId,
-      });
-    } catch (err) {
-      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    await this.commandBus.execute(new UnassignAllCommand(dto.agentId));
   }
 }

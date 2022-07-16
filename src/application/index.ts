@@ -4,8 +4,10 @@ import {
   CreateMessageCommandHandler,
   CreateUserCommandHandler,
   UnassignAgentCommandHandler,
+  UnassignAllCommandHandler,
 } from './commands';
 import {
+  AgentAssignmentEventHandler,
   SendMessageToAgentsEventHandler,
   SendMessageToUserEventHandler,
 } from './events';
@@ -25,11 +27,13 @@ export const commandHandlers = [
   CreateMessageCommandHandler,
   CreateUserCommandHandler,
   UnassignAgentCommandHandler,
+  UnassignAllCommandHandler,
 ];
 
 export const eventHandlers = [
   SendMessageToAgentsEventHandler,
   SendMessageToUserEventHandler,
+  AgentAssignmentEventHandler,
 ];
 
 export const queryHandlers = [

@@ -1,8 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { LoginDto } from '../../dtos';
-import { Agent, AgentsUsers, User } from '../../entities';
+import { Agent, User } from '../../entities';
 import { AuthController } from './auth.controller';
 
 const loginDto = {
@@ -20,8 +21,8 @@ describe('AuthController', () => {
   const userRepository = {
     findOne: jest.fn().mockResolvedValue({ id: 1 }),
   };
-  const agentsUsersRepository = {
-    delete: jest.fn(),
+  const commandBus = {
+    execute: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -31,8 +32,8 @@ describe('AuthController', () => {
         { provide: getRepositoryToken(Agent), useValue: agentRepository },
         { provide: getRepositoryToken(User), useValue: userRepository },
         {
-          provide: getRepositoryToken(AgentsUsers),
-          useValue: agentsUsersRepository,
+          provide: CommandBus,
+          useValue: commandBus,
         },
       ],
     }).compile();
@@ -155,25 +156,7 @@ describe('AuthController', () => {
     const logoutDto = { agentId: 1 };
     await controller.logoutAgent(logoutDto);
     expect.assertions(2);
-    expect(agentsUsersRepository.delete).toBeCalledTimes(1);
-    expect(agentsUsersRepository.delete).toBeCalledWith({ agentId: 1 });
-  });
-
-  test('should throw database error when finding agent', async () => {
-    const logoutDto = { agentId: 1 };
-    const message = 'database error';
-    agentsUsersRepository.delete = jest
-      .fn()
-      .mockRejectedValue(new Error(message));
-    try {
-      await controller.logoutAgent(logoutDto);
-    } catch (err) {
-      expect.assertions(3);
-      expect(agentsUsersRepository.delete).toBeCalledTimes(1);
-      expect(agentsUsersRepository.delete).toBeCalledWith({ agentId: 1 });
-      expect(err).toStrictEqual(
-        new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
-      );
-    }
+    expect(commandBus.execute).toBeCalledTimes(1);
+    expect(commandBus.execute).toBeCalledWith({ agentId: 1 });
   });
 });

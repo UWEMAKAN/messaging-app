@@ -19,13 +19,10 @@ export class AgentAssignmentEventHandler
   constructor(private readonly connectionService: ConnectionService) {}
 
   handle(event: AgentAssignmentEvent) {
-    this.logger.log('Send assignment to agent');
-    const { agentId, assigned, userId } = event;
-    const conn = this.connectionService.getAgentConnection(agentId);
-    if (conn) {
-      conn.write(
-        `event: assignment data: ${JSON.stringify({ assigned, userId })}\n\n`,
-      );
-    }
+    this.logger.log('Send assignment to all agents');
+    const agentConns = this.connectionService.getAgentConnections();
+    agentConns.forEach((conn) => {
+      conn[1].write(`event: assignment data: ${JSON.stringify(event)}\n\n`);
+    });
   }
 }

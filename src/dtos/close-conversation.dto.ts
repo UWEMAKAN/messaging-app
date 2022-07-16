@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, Min } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
 
 export class CloseConversationDto {
   /**
@@ -16,13 +16,4 @@ export class CloseConversationDto {
   @IsInt()
   @Min(1)
   public readonly userId: number;
-}
-
-export class CloseConversationResponse {
-  /**
-   * conversation close status
-   * @example true
-   */
-  @IsBoolean()
-  public readonly closed: boolean;
 }

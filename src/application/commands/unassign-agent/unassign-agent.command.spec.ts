@@ -1,7 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { EventBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AgentsUsers } from '../../../entities';
+import { AgentAssignmentEvent } from '../../events';
 import {
   UnassignAgentCommand,
   UnassignAgentCommandHandler,
@@ -14,6 +16,9 @@ describe(UnassignAgentCommandHandler.name, () => {
   const agentsUsersRepository = {
     delete: jest.fn(),
   };
+  const eventBus = {
+    publish: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -22,6 +27,10 @@ describe(UnassignAgentCommandHandler.name, () => {
         {
           provide: getRepositoryToken(AgentsUsers),
           useValue: agentsUsersRepository,
+        },
+        {
+          provide: EventBus,
+          useValue: eventBus,
         },
       ],
     }).compile();
@@ -47,9 +56,13 @@ describe(UnassignAgentCommandHandler.name, () => {
       .mockReturnValue({ affected: 1, raw: {} });
     const command = new UnassignAgentCommand({ agentId, userId });
     await handler.execute(command);
-    expect.assertions(2);
+    expect.assertions(4);
     expect(agentsUsersRepository.delete).toBeCalledTimes(1);
     expect(agentsUsersRepository.delete).toBeCalledWith({ agentId, userId });
+    expect(eventBus.publish).toBeCalledTimes(1);
+    expect(eventBus.publish).toBeCalledWith(
+      new AgentAssignmentEvent(agentId, false, userId),
+    );
   });
 
   it('should throw database error when trying to delete record', async () => {

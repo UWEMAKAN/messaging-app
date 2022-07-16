@@ -3,3 +3,4 @@ export * from './create-agent/create-agent.command';
 export * from './create-message/create-message.command';
 export * from './asign-agent/assign-agent.command';
 export * from './unassign-agent/unassign-agent.command';
+export * from './unassign-all/unassign-all.command';

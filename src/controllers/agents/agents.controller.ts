@@ -21,6 +21,7 @@ import {
   SendMessageToAgentsEvent,
   SendMessageToUserEvent,
   UnassignAgentCommand,
+  UnassignAllCommand,
 } from '../../application';
 import {
   AgentParams,
@@ -101,7 +102,6 @@ export class AgentsController {
   /**
    * Endpoint to fetch messages by the agent
    * @param dto GetMessagesDto
-   * @param agentParam AgentParams
    * @returns GetMessageResponse
    */
   @Get('/messages')
@@ -118,18 +118,25 @@ export class AgentsController {
    */
   @Get('/:agentId/subscribe')
   @HttpCode(HttpStatus.OK)
-  subscribe(
+  async subscribe(
     @Param() agentParam: AgentParams,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     this.logger.log('subscribe agent');
+    const agentId = +agentParam.agentId;
     req.on('close', () => {
-      this.connectionService.removeAgentConnection(+agentParam.agentId);
-      this.logger.log(`Agent ${agentParam.agentId} disconnected`);
+      this.connectionService.removeAgentConnection(agentId);
+      this.logger.log(`Agent ${agentId} disconnected`);
+      setTimeout(async () => {
+        const conn = this.connectionService.getAgentConnection(agentId);
+        if (!conn) {
+          await this.commandBus.execute(new UnassignAllCommand(agentId));
+        }
+      }, 10000);
     });
     res.setHeader('Content-Type', 'text/event-stream');
-    this.connectionService.setAgentConnection(+agentParam.agentId, res);
+    this.connectionService.setAgentConnection(agentId, res);
   }
 
   /**
