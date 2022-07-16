@@ -22,7 +22,7 @@ export class AgentAssignmentEventHandler
     this.logger.log('Send assignment to all agents');
     const agentConns = this.connectionService.getAgentConnections();
     agentConns.forEach((conn) => {
-      conn[1].write(`event: assignment data: ${JSON.stringify(event)}\n\n`);
+      conn[1].write(`event: assignment\ndata: ${JSON.stringify(event)}\n\n`);
     });
   }
 }

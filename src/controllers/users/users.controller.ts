@@ -11,13 +11,16 @@ import {
   Res,
 } from '@nestjs/common';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
+import { Repository } from 'typeorm';
 import {
   CreateMessageCommand,
   CreateUserCommand,
   GetUserDetailsQuery,
   GetUserMessagesQuery,
   SendMessageToAgentsEvent,
+  UnassignAgentCommand,
 } from '../../application';
 import {
   CreateMessageDto,
@@ -28,6 +31,7 @@ import {
   UserDetailsResponse,
   UserParams,
 } from '../../dtos';
+import { AgentsUsers } from '../../entities';
 import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 
@@ -40,6 +44,8 @@ export class UsersController {
     private readonly eventBus: EventBus,
     private readonly queryBus: QueryBus,
     private readonly connectionService: ConnectionService,
+    @InjectRepository(AgentsUsers)
+    private readonly agentsUsersRepository: Repository<AgentsUsers>,
   ) {
     this.logger = new Logger(UsersController.name);
   }
@@ -91,9 +97,24 @@ export class UsersController {
     @Res() res: Response,
   ) {
     this.logger.log('subscribe user');
+    const userId = +userParam.userId;
     req.on('close', () => {
-      this.connectionService.removeUserConnection(+userParam.userId);
-      this.logger.log(`User ${userParam.userId} disconnected`);
+      this.connectionService.removeUserConnection(userId);
+      this.logger.log(`User ${userId} disconnected`);
+      setTimeout(async () => {
+        const conn = this.connectionService.getUserConnection(userId);
+        if (!conn) {
+          const agentUser = await this.agentsUsersRepository.findOne({
+            where: { userId },
+            select: ['agentId'],
+          });
+          if (agentUser) {
+            await this.commandBus.execute(
+              new UnassignAgentCommand({ userId, agentId: agentUser.agentId }),
+            );
+          }
+        }
+      }, 10000);
     });
     res.setHeader('Content-Type', 'text/event-stream');
     this.connectionService.setUserConnection(+userParam.userId, res);
