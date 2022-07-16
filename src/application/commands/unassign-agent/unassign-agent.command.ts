@@ -41,10 +41,8 @@ export class UnassignAgentCommandHandler
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    if (!deleteResult.affected) {
-      throw new HttpException('Record not found', HttpStatus.BAD_REQUEST);
+    if (deleteResult.affected) {
+      this.eventBus.publish(new AgentAssignmentEvent(agentId, false, userId));
     }
-
-    this.eventBus.publish(new AgentAssignmentEvent(agentId, false, userId));
   }
 }

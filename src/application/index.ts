@@ -8,6 +8,7 @@ import {
 } from './commands';
 import {
   AgentAssignmentEventHandler,
+  PushStockMessagesEventHandler,
   SendMessageToAgentsEventHandler,
   SendMessageToUserEventHandler,
 } from './events';
@@ -34,6 +35,7 @@ export const eventHandlers = [
   SendMessageToAgentsEventHandler,
   SendMessageToUserEventHandler,
   AgentAssignmentEventHandler,
+  PushStockMessagesEventHandler,
 ];
 
 export const queryHandlers = [

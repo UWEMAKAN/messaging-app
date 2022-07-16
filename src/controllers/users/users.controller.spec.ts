@@ -1,5 +1,6 @@
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
 import {
   CreateUserCommand,
@@ -9,6 +10,7 @@ import {
   GetUserDetailsQuery,
 } from '../../application';
 import { CreateMessageDto, CreateUserDto } from '../../dtos';
+import { AgentsUsers } from '../../entities';
 import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 import { UsersController } from './users.controller';
@@ -32,10 +34,12 @@ describe(UsersController.name, () => {
   const response = {
     setHeader: jest.fn(),
   } as unknown as Response;
-
   const connectionService = {
     setUserConnection: jest.fn(),
   } as unknown as ConnectionService;
+  const agentsUsersRepository = {
+    findOne: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -45,6 +49,10 @@ describe(UsersController.name, () => {
         { provide: EventBus, useValue: eventBus },
         { provide: QueryBus, useValue: queryBus },
         { provide: ConnectionService, useValue: connectionService },
+        {
+          provide: getRepositoryToken(AgentsUsers),
+          useValue: agentsUsersRepository,
+        },
       ],
     }).compile();
 
