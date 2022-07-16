@@ -144,12 +144,12 @@ describe('Controllers (e2e)', () => {
         type: 'TEXT',
       };
 
-      const message = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/users/messages')
         .send(body)
         .expect(200);
 
-      const messages = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .get(`/users/${user.body.userId}/messages`)
         .send()
         .expect(200);
@@ -305,6 +305,45 @@ describe('Controllers (e2e)', () => {
       await request(app.getHttpServer())
         .post('/agents/close-conversation')
         .send({ agentId: body.agentId, userId: body.userId })
+        .expect(200);
+    });
+
+    it('/agents/tickets (GET) 200 Ok', async () => {
+      const body = {
+        email: randomEmail(),
+        firstName: randomString(7),
+        lastName: randomString(8),
+        password: randomString(8),
+      };
+      await request(app.getHttpServer()).post('/agents').send(body).expect(201);
+
+      request(app.getHttpServer()).get('/agents/tickets').send().expect(200);
+    });
+
+    it('/agents/messages/stock (POST) 200 Ok', async () => {
+      const body = {
+        messages: [
+          {
+            id: 1,
+            text: 'Good morning',
+          },
+          {
+            id: 2,
+            text: 'How may I be of service?',
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post('/agents/messages/stock')
+        .send(body)
+        .expect(200);
+    });
+
+    it('/agents/messages/stock (GET) 200 Ok', async () => {
+      return request(app.getHttpServer())
+        .get('/agents/messages/stock')
+        .send()
         .expect(200);
     });
   });

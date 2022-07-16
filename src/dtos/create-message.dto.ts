@@ -20,7 +20,7 @@ export class CreateMessageDto {
 
   /**
    * message body
-   * @example I want to make enquiries about your loan products
+   * @example 'I want to make enquiries about your loan products'
    */
   @IsString()
   @IsNotEmpty()
@@ -53,7 +53,7 @@ export class CreateAgentMessageDto {
 
   /**
    * message body
-   * @example I want to make enquiries about your loan products
+   * @example 'I want to make enquiries about your loan products'
    */
   @IsString()
   @IsNotEmpty()

@@ -16,7 +16,7 @@ import {
   CreateAgentMessageDto,
   CreateMessageResponse,
 } from '../../dtos';
-import { AgentsUsers } from '../../entities';
+import { AgentsUsers, StockMessage } from '../../entities';
 import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 import { AgentsController } from './agents.controller';
@@ -46,6 +46,10 @@ describe('AgentsController', () => {
   const agentsUsersRepository = {
     find: jest.fn(),
   };
+  const stockMessageRepository = {
+    find: jest.fn(),
+    save: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -58,6 +62,10 @@ describe('AgentsController', () => {
         {
           provide: getRepositoryToken(AgentsUsers),
           useValue: agentsUsersRepository,
+        },
+        {
+          provide: getRepositoryToken(StockMessage),
+          useValue: stockMessageRepository,
         },
       ],
     }).compile();
@@ -202,6 +210,31 @@ describe('AgentsController', () => {
           new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
         );
       }
+    });
+  });
+
+  describe('addStockMessage', () => {
+    const dto = {
+      messages: [
+        {
+          text: 'How may I be of service?',
+          id: 1,
+        },
+      ],
+    };
+    it('should add or update stock message', async () => {
+      await controller.addStockMessages(dto);
+      expect.assertions(2);
+      expect(stockMessageRepository.save).toBeCalledTimes(1);
+      expect(stockMessageRepository.save).toBeCalledWith(dto.messages);
+    });
+  });
+
+  describe('getStockMessage', () => {
+    it('should add or update stock message', async () => {
+      await controller.getStockMessages();
+      expect.assertions(1);
+      expect(stockMessageRepository.find).toBeCalledTimes(1);
     });
   });
 });

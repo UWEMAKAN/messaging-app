@@ -26,7 +26,7 @@ export class UserDetailsResponse {
 
   /**
    * email of the user
-   * @example bender@futurama.com
+   * @example 'bender@futurama.com'
    */
   @IsString()
   email: string;

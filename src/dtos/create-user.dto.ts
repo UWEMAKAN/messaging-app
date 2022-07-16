@@ -36,7 +36,7 @@ export class CreateUserDto {
 export class CreateUserResponse {
   /**
    * id of the newly created user
-   * @example { userId: 1 }
+   * @example 1
    */
   @IsInt()
   @Min(1)

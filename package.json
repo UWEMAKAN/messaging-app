@@ -80,7 +80,7 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/{!(main|*.module|index|*Migrations|*.entity|*.filter|logging.*|*.pipe),}.(t|j)s"
+      "**/{!(main|*.module|index|*Migrations|*.entity|*.filter|logging.*|*.pipe|add-stock-messages.dto),}.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
