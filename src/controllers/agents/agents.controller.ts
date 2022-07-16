@@ -27,6 +27,7 @@ import {
   UnassignAllCommand,
 } from '../../application';
 import {
+  AddStockMessagesDto,
   AgentParams,
   CloseConversationDto,
   CreateAgentDto,
@@ -35,9 +36,10 @@ import {
   CreateMessageResponse,
   GetMessageResponse,
   GetMessagesDto,
+  StockMessageDto,
   TicketResponse,
 } from '../../dtos';
-import { AgentsUsers } from '../../entities';
+import { AgentsUsers, StockMessage } from '../../entities';
 import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 
@@ -52,6 +54,8 @@ export class AgentsController {
     private readonly connectionService: ConnectionService,
     @InjectRepository(AgentsUsers)
     private readonly agentsUsersRepository: Repository<AgentsUsers>,
+    @InjectRepository(StockMessage)
+    private readonly stockMessageRepository: Repository<StockMessage>,
   ) {
     this.logger = new Logger(AgentsController.name);
   }
@@ -59,7 +63,6 @@ export class AgentsController {
   /**
    * Endpoint to create a new agent
    * @param dto CreateAgentDto
-   * @returns CreateAgentResponse
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -71,7 +74,6 @@ export class AgentsController {
   /**
    * Endpoint for agents to send a new message
    * @param dto CreateAgentMessageDto
-   * @returns CreateMessageResponse
    */
   @Post('/messages')
   @HttpCode(HttpStatus.OK)
@@ -109,11 +111,12 @@ export class AgentsController {
   /**
    * Endpoint to fetch messages by the agent
    * @param dto GetMessagesDto
-   * @returns GetMessageResponse
    */
   @Get('/messages')
   @HttpCode(HttpStatus.OK)
-  async getMessages(@Query() dto: GetMessagesDto): Promise<GetMessageResponse> {
+  async getMessages(
+    @Query() dto: GetMessagesDto,
+  ): Promise<GetMessageResponse[]> {
     this.logger.log('getMessages');
     return await this.queryBus.execute(new GetAgentMessagesQuery(dto));
   }
@@ -121,7 +124,6 @@ export class AgentsController {
   /**
    * Endpoint for agents to subscribe to new messages
    * @param agentParam AgentParams
-   * @returns GetMessageResponse
    */
   @Get('/:agentId/subscribe')
   @HttpCode(HttpStatus.OK)
@@ -159,7 +161,6 @@ export class AgentsController {
 
   /**
    * Endpoint to fetch all tickets
-   * @returns TicketResponse[]
    */
   @Get('/tickets')
   @HttpCode(HttpStatus.OK)
@@ -172,5 +173,23 @@ export class AgentsController {
       this.logger.log(JSON.stringify(err));
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  /**
+   * Endpoint to add stock messages
+   * @param dto AddStockMessagesDto
+   */
+  @Post('/messages/stock')
+  @HttpCode(HttpStatus.OK)
+  async addStockMessages(
+    @Body() dto: AddStockMessagesDto,
+  ): Promise<StockMessageDto[]> {
+    return await this.stockMessageRepository.save(dto.messages);
+  }
+
+  @Get('/messages/stock')
+  @HttpCode(HttpStatus.OK)
+  async getStockMessages(): Promise<StockMessageDto[]> {
+    return await this.stockMessageRepository.find();
   }
 }

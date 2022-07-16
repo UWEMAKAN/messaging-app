@@ -6,3 +6,4 @@ export * from './get-messages.dto';
 export * from './close-conversation.dto';
 export * from './user-details.dto';
 export * from './logout.dto';
+export * from './add-stock-messages.dto';

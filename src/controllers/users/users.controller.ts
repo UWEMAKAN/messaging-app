@@ -24,6 +24,7 @@ import {
   CreateMessageResponse,
   CreateUserDto,
   CreateUserResponse,
+  GetMessageResponse,
   UserDetailsResponse,
   UserParams,
 } from '../../dtos';
@@ -46,7 +47,6 @@ export class UsersController {
   /**
    * Endpoint to create a new user
    * @param dto CreateUserDto
-   * @returns CreateUserResponse
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -58,7 +58,6 @@ export class UsersController {
   /**
    * Endpoint to send messages from a user
    * @param dto CreateMessageDto
-   * @returns CreateMessageResponse
    */
   @Post('/messages')
   @HttpCode(HttpStatus.OK)
@@ -83,7 +82,6 @@ export class UsersController {
   /**
    * Endpoint for user to subscribe to new messages
    * @param userParam UserParams
-   * @returns GetMessageResponse
    */
   @Get('/:userId/subscribe')
   @HttpCode(HttpStatus.OK)
@@ -101,9 +99,15 @@ export class UsersController {
     this.connectionService.setUserConnection(+userParam.userId, res);
   }
 
+  /**
+   * Endpoint to fetch user messages
+   * @param userParam UserParams
+   */
   @Get('/:userId/messages')
   @HttpCode(HttpStatus.OK)
-  async getMessages(@Param() userParam: UserParams) {
+  async getMessages(
+    @Param() userParam: UserParams,
+  ): Promise<GetMessageResponse[]> {
     return await this.queryBus.execute(
       new GetUserMessagesQuery(+userParam.userId),
     );
@@ -112,7 +116,6 @@ export class UsersController {
   /**
    * Endpoint to fetch user details
    * @param userParam UserParams
-   * @returns UserDetailsResponse
    */
   @Get('/:userId')
   @HttpCode(HttpStatus.OK)

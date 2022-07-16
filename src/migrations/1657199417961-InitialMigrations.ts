@@ -44,6 +44,12 @@ export class InitialMigrations1657199417961 implements MigrationInterface {
         "userId" integer UNIQUE NOT NULL
       )`,
     );
+    await queryRunner.query(
+      `CREATE TABLE "stock_messages" (
+        "id" serial UNIQUE PRIMARY KEY NOT NULL,
+        "text" varchar UNIQUE NOT NULL
+      )`,
+    );
     await queryRunner.query(`CREATE INDEX ON "users" ("email") INCLUDE ("id")`);
 
     await queryRunner.query(`CREATE INDEX ON "users" ("email") INCLUDE ("id")`);
