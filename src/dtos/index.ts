@@ -5,3 +5,4 @@ export * from './login.dto';
 export * from './get-messages.dto';
 export * from './close-conversation.dto';
 export * from './user-details.dto';
+export * from './logout.dto';

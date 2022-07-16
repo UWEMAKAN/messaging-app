@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Logger,
   Param,
@@ -12,7 +13,9 @@ import {
   Res,
 } from '@nestjs/common';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
+import { Repository } from 'typeorm';
 import {
   AssignAgentCommand,
   CreateAgentCommand,
@@ -21,6 +24,7 @@ import {
   SendMessageToAgentsEvent,
   SendMessageToUserEvent,
   UnassignAgentCommand,
+  UnassignAllCommand,
 } from '../../application';
 import {
   AgentParams,
@@ -31,7 +35,9 @@ import {
   CreateMessageResponse,
   GetMessageResponse,
   GetMessagesDto,
+  TicketResponse,
 } from '../../dtos';
+import { AgentsUsers } from '../../entities';
 import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 
@@ -44,6 +50,8 @@ export class AgentsController {
     private readonly eventBus: EventBus,
     private readonly queryBus: QueryBus,
     private readonly connectionService: ConnectionService,
+    @InjectRepository(AgentsUsers)
+    private readonly agentsUsersRepository: Repository<AgentsUsers>,
   ) {
     this.logger = new Logger(AgentsController.name);
   }
@@ -101,7 +109,6 @@ export class AgentsController {
   /**
    * Endpoint to fetch messages by the agent
    * @param dto GetMessagesDto
-   * @param agentParam AgentParams
    * @returns GetMessageResponse
    */
   @Get('/messages')
@@ -118,18 +125,25 @@ export class AgentsController {
    */
   @Get('/:agentId/subscribe')
   @HttpCode(HttpStatus.OK)
-  subscribe(
+  async subscribe(
     @Param() agentParam: AgentParams,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     this.logger.log('subscribe agent');
+    const agentId = +agentParam.agentId;
     req.on('close', () => {
-      this.connectionService.removeAgentConnection(+agentParam.agentId);
-      this.logger.log(`Agent ${agentParam.agentId} disconnected`);
+      this.connectionService.removeAgentConnection(agentId);
+      this.logger.log(`Agent ${agentId} disconnected`);
+      setTimeout(async () => {
+        const conn = this.connectionService.getAgentConnection(agentId);
+        if (!conn) {
+          await this.commandBus.execute(new UnassignAllCommand(agentId));
+        }
+      }, 10000);
     });
     res.setHeader('Content-Type', 'text/event-stream');
-    this.connectionService.setAgentConnection(+agentParam.agentId, res);
+    this.connectionService.setAgentConnection(agentId, res);
   }
 
   /**
@@ -141,5 +155,22 @@ export class AgentsController {
   async closeConversation(@Body() dto: CloseConversationDto): Promise<void> {
     this.logger.log('closeConversation');
     return await this.commandBus.execute(new UnassignAgentCommand(dto));
+  }
+
+  /**
+   * Endpoint to fetch all tickets
+   * @returns TicketResponse[]
+   */
+  @Get('/tickets')
+  @HttpCode(HttpStatus.OK)
+  async getTickets(): Promise<TicketResponse[]> {
+    try {
+      return await this.agentsUsersRepository.find({
+        select: ['agentId', 'userId'],
+      });
+    } catch (err) {
+      this.logger.log(JSON.stringify(err));
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

@@ -1,9 +1,15 @@
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
-import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandHandler,
+  EventBus,
+  ICommand,
+  ICommandHandler,
+} from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
-import { CloseConversationDto, CloseConversationResponse } from '../../../dtos';
+import { CloseConversationDto } from '../../../dtos';
 import { AgentsUsers } from '../../../entities';
+import { AgentAssignmentEvent } from '../../events';
 
 export class UnassignAgentCommand implements ICommand {
   constructor(public readonly data: CloseConversationDto) {}
@@ -18,11 +24,10 @@ export class UnassignAgentCommandHandler
   constructor(
     @InjectRepository(AgentsUsers)
     private readonly agentsUsersRepository: Repository<AgentsUsers>,
+    private readonly eventBus: EventBus,
   ) {}
 
-  async execute(
-    command: UnassignAgentCommand,
-  ): Promise<CloseConversationResponse> {
+  async execute(command: UnassignAgentCommand): Promise<void> {
     const { agentId, userId } = command.data;
     let deleteResult: DeleteResult = null;
 
@@ -40,6 +45,6 @@ export class UnassignAgentCommandHandler
       throw new HttpException('Record not found', HttpStatus.BAD_REQUEST);
     }
 
-    return { closed: true };
+    this.eventBus.publish(new AgentAssignmentEvent(agentId, false, userId));
   }
 }

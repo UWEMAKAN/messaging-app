@@ -1,8 +1,14 @@
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
-import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandHandler,
+  EventBus,
+  ICommand,
+  ICommandHandler,
+} from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentsUsers } from '../../../entities';
+import { AgentAssignmentEvent } from '../../events';
 
 export class AssignAgentCommand implements ICommand {
   constructor(
@@ -20,9 +26,10 @@ export class AssignAgentCommandHandler
   constructor(
     @InjectRepository(AgentsUsers)
     private readonly agentsUsersRepository: Repository<AgentsUsers>,
+    private readonly eventBus: EventBus,
   ) {}
 
-  async execute(command: AssignAgentCommand): Promise<void> {
+  async execute(command: AssignAgentCommand): Promise<any> {
     const { agentId, userId } = command;
     let agentUser: AgentsUsers = null;
 
@@ -39,6 +46,8 @@ export class AssignAgentCommandHandler
     if (!agentUser) {
       try {
         await this.agentsUsersRepository.insert({ agentId, userId });
+        const event = new AgentAssignmentEvent(agentId, true, userId);
+        this.eventBus.publish(event);
       } catch (err) {
         this.logger.log(JSON.stringify(err));
         throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);

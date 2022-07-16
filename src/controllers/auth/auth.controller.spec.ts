@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { LoginDto } from '../../dtos';
@@ -20,6 +21,9 @@ describe('AuthController', () => {
   const userRepository = {
     findOne: jest.fn().mockResolvedValue({ id: 1 }),
   };
+  const commandBus = {
+    execute: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -27,6 +31,10 @@ describe('AuthController', () => {
       providers: [
         { provide: getRepositoryToken(Agent), useValue: agentRepository },
         { provide: getRepositoryToken(User), useValue: userRepository },
+        {
+          provide: CommandBus,
+          useValue: commandBus,
+        },
       ],
     }).compile();
 
@@ -142,5 +150,13 @@ describe('AuthController', () => {
         new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
       );
     }
+  });
+
+  test('should call delete on assigned tickets', async () => {
+    const logoutDto = { agentId: 1 };
+    await controller.logoutAgent(logoutDto);
+    expect.assertions(2);
+    expect(commandBus.execute).toBeCalledTimes(1);
+    expect(commandBus.execute).toBeCalledWith({ agentId: 1 });
   });
 });
