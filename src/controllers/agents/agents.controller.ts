@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Logger,
   Param,
@@ -12,7 +13,9 @@ import {
   Res,
 } from '@nestjs/common';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
+import { Repository } from 'typeorm';
 import {
   AssignAgentCommand,
   CreateAgentCommand,
@@ -32,7 +35,9 @@ import {
   CreateMessageResponse,
   GetMessageResponse,
   GetMessagesDto,
+  TicketResponse,
 } from '../../dtos';
+import { AgentsUsers } from '../../entities';
 import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 
@@ -45,6 +50,8 @@ export class AgentsController {
     private readonly eventBus: EventBus,
     private readonly queryBus: QueryBus,
     private readonly connectionService: ConnectionService,
+    @InjectRepository(AgentsUsers)
+    private readonly agentsUsersRepository: Repository<AgentsUsers>,
   ) {
     this.logger = new Logger(AgentsController.name);
   }
@@ -148,5 +155,22 @@ export class AgentsController {
   async closeConversation(@Body() dto: CloseConversationDto): Promise<void> {
     this.logger.log('closeConversation');
     return await this.commandBus.execute(new UnassignAgentCommand(dto));
+  }
+
+  /**
+   * Endpoint to fetch all tickets
+   * @returns TicketResponse[]
+   */
+  @Get('/tickets')
+  @HttpCode(HttpStatus.OK)
+  async getTickets(): Promise<TicketResponse[]> {
+    try {
+      return await this.agentsUsersRepository.find({
+        select: ['agentId', 'userId'],
+      });
+    } catch (err) {
+      this.logger.log(JSON.stringify(err));
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

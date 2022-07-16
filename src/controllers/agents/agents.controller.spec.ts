@@ -1,5 +1,7 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
 import {
   AssignAgentCommand,
@@ -14,6 +16,7 @@ import {
   CreateAgentMessageDto,
   CreateMessageResponse,
 } from '../../dtos';
+import { AgentsUsers } from '../../entities';
 import { ConnectionService } from '../../services';
 import { MessageSenders } from '../../utils';
 import { AgentsController } from './agents.controller';
@@ -37,10 +40,12 @@ describe('AgentsController', () => {
   const response = {
     setHeader: jest.fn(),
   } as unknown as Response;
-
   const connectionService = {
     setAgentConnection: jest.fn(),
   } as unknown as ConnectionService;
+  const agentsUsersRepository = {
+    find: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -50,6 +55,10 @@ describe('AgentsController', () => {
         { provide: EventBus, useValue: eventBus },
         { provide: QueryBus, useValue: queryBus },
         { provide: ConnectionService, useValue: connectionService },
+        {
+          provide: getRepositoryToken(AgentsUsers),
+          useValue: agentsUsersRepository,
+        },
       ],
     }).compile();
 
@@ -163,6 +172,36 @@ describe('AgentsController', () => {
         param.agentId,
         response,
       );
+    });
+  });
+
+  describe('getTickets', () => {
+    it('should call agentsUsersRepository.find', async () => {
+      await controller.getTickets();
+      expect.assertions(2);
+      expect(agentsUsersRepository.find).toBeCalledTimes(1);
+      expect(agentsUsersRepository.find).toBeCalledWith({
+        select: ['agentId', 'userId'],
+      });
+    });
+
+    it('should throw database error when trying to fetch tickets', async () => {
+      const message = 'Database error';
+      agentsUsersRepository.find = jest
+        .fn()
+        .mockRejectedValue(new Error(message));
+      try {
+        await controller.getTickets();
+      } catch (err) {
+        expect.assertions(3);
+        expect(agentsUsersRepository.find).toBeCalledTimes(1);
+        expect(agentsUsersRepository.find).toBeCalledWith({
+          select: ['agentId', 'userId'],
+        });
+        expect(err).toStrictEqual(
+          new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR),
+        );
+      }
     });
   });
 });

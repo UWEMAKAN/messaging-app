@@ -106,3 +106,21 @@ export class AgentParams {
   @IsNumberString()
   public readonly agentId: number;
 }
+
+export class TicketResponse {
+  /**
+   * valid agent id.
+   * @example 1
+   */
+  @IsInt()
+  @Min(1)
+  agentId: number;
+
+  /**
+   * valid userId
+   * @example 1
+   */
+  @IsInt()
+  @Min(1)
+  userId: number;
+}
