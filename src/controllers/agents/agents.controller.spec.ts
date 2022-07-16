@@ -222,11 +222,15 @@ describe('AgentsController', () => {
         },
       ],
     };
+
     it('should add or update stock message', async () => {
+      stockMessageRepository.save = jest.fn().mockResolvedValue(dto.messages);
       await controller.addStockMessages(dto);
-      expect.assertions(2);
+      expect.assertions(4);
       expect(stockMessageRepository.save).toBeCalledTimes(1);
       expect(stockMessageRepository.save).toBeCalledWith(dto.messages);
+      expect(eventBus.publish).toBeCalledTimes(1);
+      expect(eventBus.publish).toBeCalledWith(dto);
     });
   });
 

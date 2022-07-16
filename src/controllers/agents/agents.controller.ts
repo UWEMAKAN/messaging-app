@@ -21,6 +21,7 @@ import {
   CreateAgentCommand,
   CreateMessageCommand,
   GetAgentMessagesQuery,
+  PushStockMessagesEvent,
   SendMessageToAgentsEvent,
   SendMessageToUserEvent,
   UnassignAgentCommand,
@@ -184,7 +185,9 @@ export class AgentsController {
   async addStockMessages(
     @Body() dto: AddStockMessagesDto,
   ): Promise<StockMessageDto[]> {
-    return await this.stockMessageRepository.save(dto.messages);
+    const messages = await this.stockMessageRepository.save(dto.messages);
+    this.eventBus.publish(new PushStockMessagesEvent(messages));
+    return messages;
   }
 
   @Get('/messages/stock')
