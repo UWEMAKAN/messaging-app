@@ -132,7 +132,7 @@ export class AgentsController {
     @Param() agentParam: AgentParams,
     @Req() req: Request,
     @Res() res: Response,
-  ) {
+  ): Promise<void> {
     this.logger.log('subscribe agent');
     const agentId = +agentParam.agentId;
     req.on('close', () => {

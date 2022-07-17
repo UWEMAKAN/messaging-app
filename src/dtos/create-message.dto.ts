@@ -3,9 +3,9 @@ import {
   Min,
   IsString,
   IsNotEmpty,
-  IsIn,
   IsDateString,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
 import { MessageSenders, MessageTypes } from '../utils';
 
@@ -30,7 +30,7 @@ export class CreateMessageDto {
    * valid message type
    * @example TEXT
    */
-  @IsIn(Object.values(MessageTypes))
+  @IsEnum(MessageTypes)
   type: string;
 }
 
@@ -63,7 +63,7 @@ export class CreateAgentMessageDto {
    * valid message type
    * @example TEXT
    */
-  @IsIn(Object.values(MessageTypes))
+  @IsEnum(MessageTypes)
   type: string;
 }
 
@@ -95,14 +95,14 @@ export class CreateMessageResponse {
    * valid message type
    * @example TEXT
    */
-  @IsIn(Object.values(MessageTypes))
+  @IsEnum(MessageTypes)
   type: string;
 
   /**
    * valid message type
    * @example USER
    */
-  @IsIn(Object.values(MessageSenders))
+  @IsEnum(MessageSenders)
   sender: string;
 
   /**

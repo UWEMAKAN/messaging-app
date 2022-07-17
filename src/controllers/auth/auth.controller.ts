@@ -91,7 +91,7 @@ export class AuthController {
    */
   @Post('/logout/agents')
   @HttpCode(HttpStatus.OK)
-  async logoutAgent(@Body() dto: LogoutDto) {
+  async logoutAgent(@Body() dto: LogoutDto): Promise<void> {
     await this.commandBus.execute(new UnassignAllCommand(dto.agentId));
   }
 }
