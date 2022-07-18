@@ -95,7 +95,7 @@ export class UsersController {
     @Param() userParam: UserParams,
     @Req() req: Request,
     @Res() res: Response,
-  ) {
+  ): Promise<void> {
     this.logger.log('subscribe user');
     const userId = +userParam.userId;
     req.on('close', () => {

@@ -2,7 +2,7 @@ import {
   IsOptional,
   IsNumberString,
   IsDateString,
-  IsIn,
+  IsEnum,
   IsInt,
   IsString,
   Min,
@@ -14,7 +14,7 @@ export class GetMessagesDto {
    * Duration for which to fetch message
    * @example ONE_DAY
    */
-  @IsIn(Object.values(DurationStrings))
+  @IsEnum(DurationStrings)
   public readonly duration: string;
 }
 
@@ -46,14 +46,14 @@ export class GetMessageResponse {
    * valid message type
    * @example TEXT
    */
-  @IsIn(Object.values(MessageTypes))
+  @IsEnum(MessageTypes)
   type: string;
 
   /**
    * message sender type
    * @example USER
    */
-  @IsIn(Object.values(MessageSenders))
+  @IsEnum(MessageSenders)
   sender: string;
 
   /**
