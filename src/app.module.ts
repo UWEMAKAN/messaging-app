@@ -15,18 +15,36 @@ import { controllers } from './controllers';
     ConfigModule.forRoot({ isGlobal: true }),
     CqrsModule,
     TypeOrmModule.forRoot(
-      ((configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: +configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
-        entities: [...entities],
-        synchronize: false,
-        logging: false,
-        migrationsTableName: configService.get<string>('DB_MIGRATION_TABLE'),
-      }))(new ConfigService()),
+      ((configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        if (databaseUrl) {
+          return {
+            url: databaseUrl,
+            type: 'postgres',
+            ssl: {
+              rejectUnauthorized: false,
+            },
+            entities: [...entities],
+            synchronize: false,
+            logging: true,
+            autoLoadEntities: true,
+            migrationsTableName:
+              configService.get<string>('DB_MIGRATION_TABLE'),
+          };
+        }
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST'),
+          port: +configService.get<number>('DB_PORT'),
+          username: configService.get<string>('DB_USERNAME'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database: configService.get<string>('DB_NAME'),
+          entities: [...entities],
+          synchronize: false,
+          logging: false,
+          migrationsTableName: configService.get<string>('DB_MIGRATION_TABLE'),
+        };
+      })(new ConfigService()),
     ),
     TypeOrmModule.forFeature([...entities]),
   ],
